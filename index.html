@@ -10,7 +10,7 @@
     --bg:#0d0f14; --surface:#151820; --border:#252a35;
     --accent:#e8c840; --accent2:#4a9eff; --neg:#ff6b6b; --pos:#5dd6a8;
     --text:#e8eaf0; --muted:#7a8094; --panel:#1a1e28; --hover:#1f2433;
-    --font: 'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif;
+    --font:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif;
     --r:6px; --tr:0.18s ease;
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -28,6 +28,7 @@
   .nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;color:var(--muted);transition:var(--tr);border-left:2px solid transparent;font-size:13px}
   .nav-item:hover{background:var(--hover);color:var(--text)}
   .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(232,200,64,.06)}
+  .nav-item.sub-item{padding-left:38px;font-size:12px}
   .nav-item .icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
   #sidebar-footer{padding:10px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)}
   #sidebar-footer span{color:var(--accent)}
@@ -36,18 +37,39 @@
   #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
   #topbar{height:50px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:14px}
   #topbar h2{font-size:15px;font-weight:600;flex:1}
-  #topbar .badge{background:var(--panel);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--muted)}
+  .badge{background:var(--panel);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--muted)}
   #content{flex:1;overflow-y:auto;padding:20px 22px}
 
   .view{display:none}.view.active{display:block}
 
+  /* 因子セレクターバー（共有） */
+  #factor-selector-bar{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:12px 22px;flex-shrink:0;display:none;
+  }
+  #factor-selector-bar.visible{display:block}
+  .fsel-inner{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .fsel-inner label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+  .fsel-search-wrap{position:relative;flex:1;max-width:400px}
+  .fsel-search-wrap input{width:100%;padding-left:32px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:7px 11px 7px 32px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none}
+  .fsel-search-wrap input:focus{border-color:var(--accent2)}
+  .fsel-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+  .fsel-current{display:flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(74,158,255,.1);border:1px solid var(--accent2);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--accent2);white-space:nowrap;cursor:pointer}
+  .fsel-current:hover{background:rgba(74,158,255,.18)}
+  #fsel-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:320px;overflow-y:auto;display:none;margin-top:4px}
+  #fsel-dropdown.open{display:block}
+  .fsel-drop-item{padding:8px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+  .fsel-drop-item:hover{background:var(--hover)}
+  .fsel-drop-item .di-label{font-size:13px;font-weight:500}
+  .fsel-drop-item .di-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:12px}
+  .fsel-corr-g{color:var(--pos)}.fsel-corr-gn{color:var(--neg)}.fsel-corr-gm{color:var(--muted)}
+
   /* Controls */
-  .control-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:flex-end}
+  .control-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
   .control-group{display:flex;flex-direction:column;gap:4px}
   .control-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
   select,input[type=text]{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none;min-width:180px}
   select:focus,input[type=text]:focus{border-color:var(--accent2)}
-  .factor-select{min-width:260px}
   .btn{padding:7px 16px;border-radius:var(--r);border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:var(--tr)}
   .btn-primary{background:var(--accent);color:#111}
   .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
@@ -55,17 +77,18 @@
   .btn-ghost.active{border-color:var(--accent2);color:var(--accent2);background:rgba(74,158,255,.1)}
   .toggle-group{display:flex;gap:3px}
 
-  /* Search */
-  .search-wrap{position:relative;margin-bottom:14px}
-  .search-wrap input{width:100%;padding-left:34px}
-  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+  /* Sub-tabs */
+  .sub-tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0}
+  .sub-tab{padding:8px 18px;cursor:pointer;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:var(--tr)}
+  .sub-tab:hover{color:var(--text)}
+  .sub-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
   /* Cards */
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:14px}
   .card-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 
   /* KGI */
-  .corr-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .corr-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .corr-card{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px}
   .corr-card .label{font-size:11px;color:var(--muted);margin-bottom:5px}
   .corr-card .value{font-size:26px;font-weight:700}
@@ -89,7 +112,7 @@
   .row-jpn td{background:rgba(232,200,64,.05)!important}
   .row-jpn td:first-child{border-left:2px solid var(--accent)}
 
-  /* Scatter / WEF */
+  /* Chart */
   .chart-wrap{position:relative}
   .tooltip{position:absolute;pointer-events:none;background:rgba(10,12,20,.95);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:12px;line-height:1.6;min-width:160px;z-index:100;backdrop-filter:blur(8px)}
   .tooltip-hidden{display:none}
@@ -101,16 +124,6 @@
   .compare-row.header{font-size:10px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--border)}
   .compare-bar-wrap{position:relative;height:5px;border-radius:3px;background:rgba(255,255,255,.06)}
   .compare-bar{position:absolute;height:5px;border-radius:3px}
-  .cf-label{font-size:12px}
-  .cf-val{font-size:11px;font-family:monospace;text-align:right}
-
-  /* Factor list */
-  .factor-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:4px}
-  .factor-tag{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;cursor:pointer;transition:var(--tr)}
-  .factor-tag:hover{border-color:var(--accent2)}
-  .factor-tag .ft-label{font-size:12px;font-weight:600;margin-bottom:3px}
-  .factor-tag .ft-cat{font-size:10px;color:var(--muted)}
-  .factor-tag .ft-corr{font-size:11px;margin-top:4px;display:flex;gap:10px}
 
   /* Scrollbar */
   ::-webkit-scrollbar{width:5px}
@@ -121,13 +134,19 @@
   .loading{padding:60px;text-align:center;color:var(--muted)}
   .loading span{color:var(--accent)}
   .empty{padding:40px;text-align:center;color:var(--muted)}
-
-  /* Selected badge */
   .badge-selected{display:inline-block;background:rgba(232,200,64,.15);color:var(--accent);border:1px solid rgba(232,200,64,.3);padding:1px 6px;border-radius:3px;font-size:9px;margin-left:4px;vertical-align:middle}
+
+  /* WEF search wrap */
+  .wef-search-wrap{position:relative;max-width:320px;flex:1}
+  .wef-search-wrap input{width:100%;padding-left:32px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:7px 11px 7px 32px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none}
+  .wef-search-wrap input:focus{border-color:var(--accent2)}
+  #wef-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:260px;overflow-y:auto;display:none;margin-top:4px}
+  #wef-dropdown.open{display:block}
 </style>
 </head>
 <body>
 <div id="app">
+  <!-- Sidebar -->
   <div id="sidebar">
     <div id="sidebar-header">
       <div class="logo">社会戦略フォーラム</div>
@@ -136,10 +155,7 @@
     </div>
     <nav>
       <div class="nav-section">因子を理解する</div>
-      <div class="nav-item active" data-view="factor-kgi"><span class="icon">📊</span>KGI相関を見る</div>
-      <div class="nav-item" data-view="factor-rank"><span class="icon">🔗</span>相関ランキング</div>
-      <div class="nav-item" data-view="factor-scatter"><span class="icon">📈</span>国別散布図</div>
-      <div class="nav-item" data-view="factor-country-rank"><span class="icon">🏆</span>国別スコアランキング</div>
+      <div class="nav-item active" data-view="factor-hub"><span class="icon">🔬</span>因子を選ぶ</div>
       <div class="nav-section">国を見る</div>
       <div class="nav-item" data-view="country-profile"><span class="icon">🌍</span>国プロフィール</div>
       <div class="nav-item" data-view="country-compare"><span class="icon">⚖️</span>2国比較</div>
@@ -149,107 +165,102 @@
     <div id="sidebar-footer">分析: <span>OECD加盟・除外なし37カ国</span></div>
   </div>
 
+  <!-- Main -->
   <div id="main">
     <div id="topbar">
-      <h2 id="view-title">KGI相関を見る</h2>
+      <h2 id="view-title">因子を選ぶ</h2>
       <div class="badge" id="topbar-badge">1180因子</div>
     </div>
+
+    <!-- 共有因子セレクターバー（因子HUBのサブページで表示） -->
+    <div id="factor-selector-bar">
+      <div class="fsel-inner">
+        <label>選択中の因子</label>
+        <div style="position:relative;flex:1;max-width:420px">
+          <div class="fsel-current" id="fsel-current-display" onclick="toggleFselDropdown()">
+            <span id="fsel-current-label">社員の熱意</span>
+            <span style="color:var(--muted);font-size:11px">▼ 変更</span>
+          </div>
+          <div id="fsel-dropdown">
+            <div style="padding:8px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)">
+              <input type="text" id="fsel-input" placeholder="ラベル名で検索…" style="width:100%;min-width:0;padding:6px 10px" oninput="renderFselDropdown()">
+            </div>
+            <div id="fsel-drop-list"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="fsel-corr-display" style="font-size:11px;color:var(--muted)"></span>
+          <span id="fsel-dev-display" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+      </div>
+    </div>
+
     <div id="content">
       <div id="loading" class="loading">データを読み込み中… <span>data.json</span></div>
 
-      <!-- KGI相関 -->
-      <div class="view" id="view-factor-kgi">
-        <div class="control-row">
-          <div class="control-group" style="flex:1;max-width:500px">
-            <label>因子を検索・選択</label>
-            <div class="search-wrap" style="margin-bottom:0">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="kgi-search" placeholder="ラベル名で検索…" class="factor-select" style="width:100%">
-            </div>
-          </div>
-          <div class="control-group">
-            <label>表示フィルタ</label>
-            <div class="toggle-group">
-              <button class="btn btn-ghost active" id="kgi-filter-all">全て</button>
-              <button class="btn btn-ghost" id="kgi-filter-sel">選抜のみ</button>
-            </div>
-          </div>
+      <!-- ====== VIEW: factor-hub ====== -->
+      <div class="view" id="view-factor-hub">
+        <!-- サブタブ -->
+        <div class="sub-tabs">
+          <div class="sub-tab active" data-subtab="kgi">📊 KGI相関</div>
+          <div class="sub-tab" data-subtab="rank">🔗 相関ランキング</div>
+          <div class="sub-tab" data-subtab="scatter">📈 国別散布図</div>
+          <div class="sub-tab" data-subtab="cr">🏆 国別スコアランキング</div>
         </div>
-        <div id="kgi-factor-list" style="margin-bottom:18px"></div>
-        <div id="kgi-result"></div>
-      </div>
 
-      <!-- 相関ランキング -->
-      <div class="view" id="view-factor-rank">
-        <div class="control-row">
-          <div class="control-group" style="flex:1;max-width:400px">
-            <label>起点因子を検索</label>
-            <div class="search-wrap" style="margin-bottom:0">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="rank-search" placeholder="ラベル名で検索…" style="width:100%">
-            </div>
-          </div>
-          <div class="control-group">
-            <label>表示件数</label>
-            <select id="rank-n-select">
-              <option value="10">Top 10</option>
-              <option value="20" selected>Top 20</option>
-              <option value="50">Top 50</option>
-            </select>
-          </div>
+        <!-- サブビュー: KGI -->
+        <div id="subtab-kgi" class="subtab-content">
+          <div id="kgi-result"></div>
         </div>
-        <div id="rank-factor-list" style="margin-bottom:14px"></div>
-        <div id="rank-result"></div>
-      </div>
 
-      <!-- 散布図 -->
-      <div class="view" id="view-factor-scatter">
-        <div class="control-row">
-          <div class="control-group" style="flex:1;max-width:400px">
-            <label>因子を検索（横軸）</label>
-            <div class="search-wrap" style="margin-bottom:0">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="scatter-search" placeholder="ラベル名で検索…" style="width:100%">
+        <!-- サブビュー: 相関ランキング -->
+        <div id="subtab-rank" class="subtab-content" style="display:none">
+          <div class="control-row">
+            <div class="control-group">
+              <label>表示件数</label>
+              <select id="rank-n-select">
+                <option value="10">Top 10</option>
+                <option value="20" selected>Top 20</option>
+                <option value="50">Top 50</option>
+              </select>
             </div>
           </div>
-          <div class="control-group">
-            <label>縦軸</label>
-            <div class="toggle-group">
-              <button class="btn btn-ghost active" id="scatter-kgi-growth">GDP成長</button>
-              <button class="btn btn-ghost" id="scatter-kgi-hap">幸福</button>
+          <div id="rank-result"></div>
+        </div>
+
+        <!-- サブビュー: 散布図 -->
+        <div id="subtab-scatter" class="subtab-content" style="display:none">
+          <div class="control-row">
+            <div class="control-group">
+              <label>縦軸</label>
+              <div class="toggle-group">
+                <button class="btn btn-ghost active" id="scatter-kgi-growth">GDP成長</button>
+                <button class="btn btn-ghost" id="scatter-kgi-hap">幸福</button>
+              </div>
             </div>
+          </div>
+          <div class="chart-wrap" id="scatter-wrap" style="position:relative">
+            <svg id="scatter-svg"></svg>
+            <div class="tooltip tooltip-hidden" id="scatter-tooltip"></div>
           </div>
         </div>
-        <div id="scatter-factor-list" style="margin-bottom:14px"></div>
-        <div class="chart-wrap" id="scatter-wrap" style="position:relative">
-          <svg id="scatter-svg"></svg>
-          <div class="tooltip tooltip-hidden" id="scatter-tooltip"></div>
+
+        <!-- サブビュー: 国別スコアランキング -->
+        <div id="subtab-cr" class="subtab-content" style="display:none">
+          <div class="control-row">
+            <div class="control-group">
+              <label>並び順</label>
+              <div class="toggle-group">
+                <button class="btn btn-ghost active" id="cr-sort-desc">高い順</button>
+                <button class="btn btn-ghost" id="cr-sort-asc">低い順</button>
+              </div>
+            </div>
+          </div>
+          <div id="cr-result"></div>
         </div>
       </div>
 
-      <!-- 国別スコアランキング -->
-      <div class="view" id="view-factor-country-rank">
-        <div class="control-row">
-          <div class="control-group" style="flex:1;max-width:400px">
-            <label>因子を検索</label>
-            <div class="search-wrap" style="margin-bottom:0">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="cr-search" placeholder="ラベル名で検索…" style="width:100%">
-            </div>
-          </div>
-          <div class="control-group">
-            <label>並び順</label>
-            <div class="toggle-group">
-              <button class="btn btn-ghost active" id="cr-sort-desc">高い順</button>
-              <button class="btn btn-ghost" id="cr-sort-asc">低い順</button>
-            </div>
-          </div>
-        </div>
-        <div id="cr-factor-list" style="margin-bottom:14px"></div>
-        <div id="cr-result"></div>
-      </div>
-
-      <!-- 国プロフィール -->
+      <!-- ====== VIEW: country-profile ====== -->
       <div class="view" id="view-country-profile">
         <div class="control-row">
           <div class="control-group">
@@ -274,17 +285,11 @@
         <div id="profile-result"></div>
       </div>
 
-      <!-- 2国比較 -->
+      <!-- ====== VIEW: country-compare ====== -->
       <div class="view" id="view-country-compare">
         <div class="control-row">
-          <div class="control-group">
-            <label>国1</label>
-            <select id="cmp-country1"></select>
-          </div>
-          <div class="control-group">
-            <label>国2</label>
-            <select id="cmp-country2"></select>
-          </div>
+          <div class="control-group"><label>国1</label><select id="cmp-country1"></select></div>
+          <div class="control-group"><label>国2</label><select id="cmp-country2"></select></div>
           <div class="control-group">
             <label>比較対象</label>
             <div class="toggle-group">
@@ -296,7 +301,7 @@
         <div id="cmp-result"></div>
       </div>
 
-      <!-- World Effect Map -->
+      <!-- ====== VIEW: world-effect ====== -->
       <div class="view" id="view-world-effect">
         <div class="control-row">
           <div class="control-group">
@@ -306,15 +311,22 @@
               <button class="btn btn-ghost" id="wef-mode-all">全1180因子</button>
             </div>
           </div>
-          <div class="control-group" style="flex:1;max-width:320px">
+          <div class="control-group" style="flex:1">
             <label>ハイライト因子を検索</label>
-            <div class="search-wrap" style="margin-bottom:0">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="wef-search" placeholder="ラベル名で検索…" style="width:100%">
+            <div class="wef-search-wrap">
+              <span class="fsel-icon" style="left:10px">🔍</span>
+              <input type="text" id="wef-search" placeholder="ラベル名で検索…" oninput="renderWefDropdown()">
+              <div id="wef-dropdown">
+                <div id="wef-drop-list"></div>
+              </div>
             </div>
           </div>
+          <div class="control-group" style="justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn btn-ghost" id="wef-clear-hl" style="display:none" onclick="clearWefHighlight()">✕ ハイライト解除</button>
+          </div>
         </div>
-        <div id="wef-highlight-list" style="margin-bottom:12px"></div>
+        <div id="wef-hl-info" style="margin-bottom:10px"></div>
         <div class="chart-wrap" style="position:relative">
           <svg id="wef-svg"></svg>
           <div class="tooltip tooltip-hidden" id="wef-tooltip"></div>
@@ -326,11 +338,25 @@
 
 <script>
 // ============================================================
-// DATA & STATE
+// STATE
 // ============================================================
 let DATA = null;
-let ALL_FACTORS = [];   // {key, label, category, selected, corr_growth, corr_happiness}
+let ALL_FACTORS = [];
 let COUNTRIES = [];
+
+// 全体共有の選択因子（factor-hub内のサブタブで共有）
+let CURRENT_FACTOR_KEY = 'GL_Employ Engagement_2023';
+let CURRENT_SUBTAB = 'kgi';
+let scatterKgi = 'growth';
+let crSort = 'desc';
+
+// WEF
+let wefMode = 'selected';
+let wefHighlightKey = null;
+
+// 国
+let profileMode = 'top', profileFilter = 'all';
+let cmpFilter = 'sel';
 
 const FLAGS = {
   AUS:'🇦🇺',AUT:'🇦🇹',BEL:'🇧🇪',CAN:'🇨🇦',CHL:'🇨🇱',COL:'🇨🇴',CRI:'🇨🇷',CZE:'🇨🇿',
@@ -340,8 +366,6 @@ const FLAGS = {
   ESP:'🇪🇸',SWE:'🇸🇪',CHE:'🇨🇭',GBR:'🇬🇧',USA:'🇺🇸'
 };
 
-const DEFAULT_FACTOR = 'GL_Employ Engagement_2023';
-
 // ============================================================
 // LOAD
 // ============================================================
@@ -349,19 +373,19 @@ async function loadData() {
   try {
     const res = await fetch('data.json');
     DATA = await res.json();
-    ALL_FACTORS = Object.entries(DATA.factors).map(([key, v]) => ({
-      key, label: v.label, category: v.category||'', selected: !!v.selected,
-      corr_growth: v.corr_growth, corr_happiness: v.corr_happiness
-    })).sort((a,b) => a.label.localeCompare(b.label,'ja'));
-    COUNTRIES = DATA.country_list.slice().sort((a,b) => {
+    ALL_FACTORS = Object.entries(DATA.factors).map(([key,v])=>({
+      key, label:v.label, category:v.category||'', selected:!!v.selected,
+      corr_growth:v.corr_growth, corr_happiness:v.corr_happiness
+    })).sort((a,b)=>a.label.localeCompare(b.label,'ja'));
+    COUNTRIES = DATA.country_list.slice().sort((a,b)=>{
       if(a.id==='JPN') return -1; if(b.id==='JPN') return 1;
       return a.name.localeCompare(b.name);
     });
     document.getElementById('loading').style.display='none';
     initAll();
-    showView('factor-kgi');
+    showView('factor-hub');
   } catch(e) {
-    document.getElementById('loading').innerHTML =
+    document.getElementById('loading').innerHTML=
       `<div style="color:var(--neg)">⚠️ data.json を同じディレクトリに配置してください。</div>`;
   }
 }
@@ -370,18 +394,31 @@ async function loadData() {
 // NAV
 // ============================================================
 const VIEW_TITLES = {
-  'factor-kgi':'KGI相関を見る','factor-rank':'相関ランキング',
-  'factor-scatter':'国別散布図','factor-country-rank':'国別スコアランキング',
-  'country-profile':'国プロフィール','country-compare':'2国比較',
-  'world-effect':'World Effect Benchmark'
+  'factor-hub':'因子を選ぶ',
+  'country-profile':'国プロフィール',
+  'country-compare':'2国比較',
+  'world-effect':'World Effect Benchmark',
 };
+const FACTOR_HUB_VIEWS = new Set(['factor-hub']);
+
 function showView(id) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+id)?.classList.add('active');
   document.querySelector(`[data-view="${id}"]`)?.classList.add('active');
   document.getElementById('view-title').textContent = VIEW_TITLES[id]||'';
+  // 因子セレクターバーはfactor-hubのとき表示
+  const bar = document.getElementById('factor-selector-bar');
+  if(FACTOR_HUB_VIEWS.has(id)){
+    bar.classList.add('visible');
+    updateFselDisplay();
+  } else {
+    bar.classList.remove('visible');
+  }
+  // WEFはチャート再描画
+  if(id==='world-effect') setTimeout(renderWEF, 50);
 }
+
 document.querySelectorAll('.nav-item').forEach(el=>
   el.addEventListener('click',()=>showView(el.dataset.view)));
 
@@ -389,105 +426,107 @@ document.querySelectorAll('.nav-item').forEach(el=>
 // HELPERS
 // ============================================================
 function corrColor(v){
-  if(v===null||v===undefined) return 'var(--muted)';
+  if(v==null) return 'var(--muted)';
   return v>=0.2?'var(--pos)':v<=-0.2?'var(--neg)':'var(--muted)';
 }
 function corrClass(v){
-  if(v===null||v===undefined) return 'neu-corr';
+  if(v==null) return 'neu-corr';
   return v>=0.2?'pos-corr':v<=-0.2?'neg-corr':'neu-corr';
 }
-function fmtCorr(v){ return (v===null||v===undefined)?'—':(v>0?'+':'')+v.toFixed(3); }
-function fmtScore(v){ return (v===null||v===undefined)?'—':(typeof v==='number'?v.toFixed(3):v); }
+function fmtCorr(v){ return v==null?'—':(v>0?'+':'')+v.toFixed(3); }
+function fmtScore(v){ return v==null?'—':(typeof v==='number'?v.toFixed(3):v); }
 function devColor(d){
-  if(d===null||d===undefined) return 'var(--muted)';
+  if(d==null) return 'var(--muted)';
   return d>=60?'var(--pos)':d<=40?'var(--neg)':'var(--text)';
 }
-function buildCountrySelect(sel, defaultId){
-  sel.innerHTML = COUNTRIES.map(c=>
+function tog(aId,bId){
+  document.getElementById(aId)?.classList.add('active');
+  document.getElementById(bId)?.classList.remove('active');
+}
+function buildCountrySelect(sel,defaultId){
+  sel.innerHTML=COUNTRIES.map(c=>
     `<option value="${c.id}" ${c.id===defaultId?'selected':''}>
       ${FLAGS[c.id]||''} ${c.name} (${c.id})</option>`).join('');
 }
 
 // ============================================================
-// LIVE SEARCH FACTOR LIST
-// 各viewで「入力→候補表示→クリックで確定」するパターン
+// 共有因子セレクター
 // ============================================================
-function makeFactorSearch({inputId, listId, onSelect, filterFn, defaultKey}) {
-  const input = document.getElementById(inputId);
-  const list  = document.getElementById(listId);
-  let currentKey = defaultKey || DEFAULT_FACTOR;
-  let filterMode = 'all';
+function updateFselDisplay(){
+  const f = DATA.factors[CURRENT_FACTOR_KEY];
+  if(!f) return;
+  document.getElementById('fsel-current-label').textContent = f.label;
+  document.getElementById('fsel-corr-display').innerHTML =
+    `成長 <span style="color:${corrColor(f.corr_growth)};font-weight:700">${fmtCorr(f.corr_growth)}</span>`;
+  document.getElementById('fsel-dev-display').innerHTML =
+    `幸福 <span style="color:${corrColor(f.corr_happiness)};font-weight:700">${fmtCorr(f.corr_happiness)}</span>` +
+    `&nbsp;&nbsp;🇯🇵偏差値 <span style="color:${devColor(f.deviation_scores?.JPN)};font-weight:700">${f.deviation_scores?.JPN?.toFixed(1)||'—'}</span>`;
+}
 
-  function getPool() {
-    let pool = ALL_FACTORS;
-    if(filterFn) pool = filterFn(pool, filterMode);
-    const q = input.value.trim().toLowerCase();
-    if(q) pool = pool.filter(f => f.label.toLowerCase().includes(q) || f.key.toLowerCase().includes(q));
-    return pool.slice(0,30);
+function toggleFselDropdown(){
+  const dd = document.getElementById('fsel-dropdown');
+  dd.classList.toggle('open');
+  if(dd.classList.contains('open')){
+    document.getElementById('fsel-input').value='';
+    renderFselDropdown();
+    document.getElementById('fsel-input').focus();
   }
+}
 
-  function render() {
-    const pool = getPool();
-    if(!pool.length){ list.innerHTML='<div class="empty" style="padding:12px">該当なし</div>'; return; }
-    list.innerHTML = pool.map(f=>`
-      <div class="factor-tag ${f.key===currentKey?'active':''}" data-key="${f.key}"
-           style="${f.key===currentKey?'border-color:var(--accent2);background:rgba(74,158,255,.08)':''}">
-        <div class="ft-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</div>
-        <div class="ft-cat">${f.category}</div>
-        <div class="ft-corr">
-          <span style="color:${corrColor(f.corr_growth)}">成長 ${fmtCorr(f.corr_growth)}</span>
-          <span style="color:${corrColor(f.corr_happiness)}">幸福 ${fmtCorr(f.corr_happiness)}</span>
-        </div>
-      </div>`).join('');
-    list.querySelectorAll('.factor-tag').forEach(el=>{
-      el.addEventListener('click',()=>{
-        currentKey = el.dataset.key;
-        input.value = DATA.factors[currentKey]?.label || '';
-        onSelect(currentKey);
-        render();
-      });
-    });
-  }
+function renderFselDropdown(){
+  const q = document.getElementById('fsel-input').value.trim().toLowerCase();
+  let pool = ALL_FACTORS;
+  if(q) pool = pool.filter(f=>f.label.toLowerCase().includes(q)||f.key.toLowerCase().includes(q));
+  pool = pool.slice(0,40);
+  document.getElementById('fsel-drop-list').innerHTML = pool.map(f=>`
+    <div class="fsel-drop-item" onclick="selectFactor('${f.key}')">
+      <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</div>
+      <div class="di-meta">
+        <span class="${f.corr_growth>=0.2?'fsel-corr-g':f.corr_growth<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">成長 ${fmtCorr(f.corr_growth)}</span>
+        <span class="${f.corr_happiness>=0.2?'fsel-corr-g':f.corr_happiness<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">幸福 ${fmtCorr(f.corr_happiness)}</span>
+        <span style="color:var(--muted)">${f.category}</span>
+      </div>
+    </div>`).join('') || '<div class="empty" style="padding:16px">該当なし</div>';
+}
 
-  input.addEventListener('input', render);
+function selectFactor(key){
+  CURRENT_FACTOR_KEY = key;
+  document.getElementById('fsel-dropdown').classList.remove('open');
+  updateFselDisplay();
+  renderCurrentSubtab();
+}
 
-  // 初期値セット
-  if(currentKey && DATA.factors[currentKey]) {
-    input.value = DATA.factors[currentKey].label;
-    onSelect(currentKey);
-  }
-  render();
+// 外クリックでドロップダウン閉じる
+document.addEventListener('click', e=>{
+  const bar = document.getElementById('factor-selector-bar');
+  if(!bar.contains(e.target)) document.getElementById('fsel-dropdown').classList.remove('open');
+  const wefWrap = document.querySelector('.wef-search-wrap');
+  if(wefWrap && !wefWrap.contains(e.target)) document.getElementById('wef-dropdown').classList.remove('open');
+});
 
-  return {
-    setFilter(mode){ filterMode=mode; render(); },
-    getCurrentKey(){ return currentKey; }
-  };
+// ============================================================
+// SUBTABS (factor-hub)
+// ============================================================
+function showSubtab(id){
+  CURRENT_SUBTAB = id;
+  document.querySelectorAll('.sub-tab').forEach(t=>t.classList.toggle('active', t.dataset.subtab===id));
+  document.querySelectorAll('.subtab-content').forEach(c=>c.style.display='none');
+  document.getElementById('subtab-'+id).style.display='block';
+  renderCurrentSubtab();
+}
+
+function renderCurrentSubtab(){
+  if(CURRENT_SUBTAB==='kgi')     renderKgi();
+  if(CURRENT_SUBTAB==='rank')    renderFactorRank();
+  if(CURRENT_SUBTAB==='scatter') renderScatter();
+  if(CURRENT_SUBTAB==='cr')      renderCountryRank();
 }
 
 // ============================================================
-// VIEW: KGI相関
+// KGI
 // ============================================================
-let kgiFilter='all';
-function initFactorKgi(){
-  const ctrl = makeFactorSearch({
-    inputId:'kgi-search', listId:'kgi-factor-list',
-    onSelect: renderKgi,
-    filterFn: (pool,mode) => mode==='sel'?pool.filter(f=>f.selected):pool
-  });
-  document.getElementById('kgi-filter-all').addEventListener('click',()=>{
-    kgiFilter='all';
-    tog('kgi-filter-all','kgi-filter-sel');
-    ctrl.setFilter('all');
-  });
-  document.getElementById('kgi-filter-sel').addEventListener('click',()=>{
-    kgiFilter='sel';
-    tog('kgi-filter-sel','kgi-filter-all');
-    ctrl.setFilter('sel');
-  });
-  window._kgiCtrl = ctrl;
-}
-
-function renderKgi(key){
+function renderKgi(){
+  const key = CURRENT_FACTOR_KEY;
   const f = DATA.factors[key]; if(!f) return;
   const cg=f.corr_growth, ch=f.corr_happiness;
   const jpnDev=f.deviation_scores?.JPN, jpnScore=f.country_scores?.JPN;
@@ -510,8 +549,17 @@ function renderKgi(key){
       </div>
     </div>
     <div class="card">
-      <div class="card-title">象限分類（World Effect Benchmark）</div>
+      <div class="card-title">象限分類</div>
       ${quadrantBadge(cg,ch)}
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">因子情報</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        <span style="color:var(--text);font-weight:600">${f.label}</span>
+        ${f.category?`&nbsp;<span style="background:var(--border);padding:2px 8px;border-radius:20px;font-size:10px">${f.category}</span>`:''}
+        ${DATA.factors[key].selected?'<span class="badge-selected">選抜</span>':''}<br>
+        コード: <code style="color:var(--accent2);font-size:11px">${key}</code>
+      </div>
     </div>`;
 }
 
@@ -530,22 +578,14 @@ function quadrantBadge(cg,ch){
 }
 
 // ============================================================
-// VIEW: 相関ランキング
+// 相関ランキング
 // ============================================================
-function initFactorRank(){
-  const ctrl = makeFactorSearch({
-    inputId:'rank-search', listId:'rank-factor-list',
-    onSelect: renderFactorRank
-  });
-  document.getElementById('rank-n-select').addEventListener('change',()=>renderFactorRank(window._rankKey));
-  window._rankCtrl = ctrl;
-}
-function renderFactorRank(key){
-  window._rankKey = key;
+function renderFactorRank(){
+  const key = CURRENT_FACTOR_KEY;
   const f = DATA.factors[key]; if(!f) return;
   const n = parseInt(document.getElementById('rank-n-select').value);
   const similar = ALL_FACTORS
-    .filter(ff=>ff.key!==key&&ff.corr_growth!==null&&ff.corr_happiness!==null)
+    .filter(ff=>ff.key!==key&&ff.corr_growth!=null&&ff.corr_happiness!=null)
     .map(ff=>({...ff, sim:Math.abs((ff.corr_growth||0)-(f.corr_growth||0))+Math.abs((ff.corr_happiness||0)-(f.corr_happiness||0))}))
     .sort((a,b)=>a.sim-b.sim);
   document.getElementById('rank-result').innerHTML=`
@@ -578,31 +618,14 @@ function renderFactorRank(key){
 }
 
 // ============================================================
-// VIEW: 散布図
+// 散布図
 // ============================================================
-let scatterKgi='growth';
-function initFactorScatter(){
-  const ctrl = makeFactorSearch({
-    inputId:'scatter-search', listId:'scatter-factor-list',
-    onSelect: renderScatter
-  });
-  document.getElementById('scatter-kgi-growth').addEventListener('click',()=>{
-    scatterKgi='growth'; tog('scatter-kgi-growth','scatter-kgi-hap');
-    renderScatter(window._scatterKey);
-  });
-  document.getElementById('scatter-kgi-hap').addEventListener('click',()=>{
-    scatterKgi='happiness'; tog('scatter-kgi-hap','scatter-kgi-growth');
-    renderScatter(window._scatterKey);
-  });
-  window._scatterCtrl = ctrl;
-}
-function renderScatter(key){
-  window._scatterKey = key;
+function renderScatter(){
+  const key = CURRENT_FACTOR_KEY;
   const f = DATA.factors[key]; if(!f) return;
   const yKey=scatterKgi==='growth'?'gdp_growth':'happiness';
-  const yLabel=scatterKgi==='growth'?'GDP成長率 CAGR (1999-2019)':'幸福（Positive affect）';
+  const yLabel=scatterKgi==='growth'?'GDP成長率 CAGR (1999–2019)':'幸福（Positive affect）';
   const corrVal=scatterKgi==='growth'?f.corr_growth:f.corr_happiness;
-
   const pts=[];
   COUNTRIES.forEach(c=>{
     const country=DATA.countries[c.id]; if(!country) return;
@@ -610,127 +633,80 @@ function renderScatter(key){
     if(x==null||y==null) return;
     pts.push({id:c.id,name:c.name,x,y});
   });
-
   const wrap=document.getElementById('scatter-wrap');
-  const W=Math.max(wrap.clientWidth||600,500), H=400;
+  const W=Math.max(wrap.clientWidth||640,500), H=400;
   const M={top:28,right:36,bottom:56,left:64};
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
   const xE=d3.extent(pts,d=>d.x), yE=d3.extent(pts,d=>d.y);
   const xP=(xE[1]-xE[0])*0.08, yP=(yE[1]-yE[0])*0.08;
   const xS=d3.scaleLinear().domain([xE[0]-xP,xE[1]+xP]).range([0,iW]);
   const yS=d3.scaleLinear().domain([yE[0]-yP,yE[1]+yP]).range([iH,0]);
-
   const svg=d3.select('#scatter-svg').attr('width',W).attr('height',H).attr('style','display:block');
   svg.selectAll('*').remove();
   const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
-
-  // Grid
   g.selectAll('.gx').data(xS.ticks(6)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
   g.selectAll('.gy').data(yS.ticks(6)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
-
-  // Trend
-  const mX=d3.mean(pts,d=>d.x), mY=d3.mean(pts,d=>d.y);
-  const num=d3.sum(pts,d=>(d.x-mX)*(d.y-mY)), den=d3.sum(pts,d=>(d.x-mX)**2);
-  if(den!==0){
-    const sl=num/den, ic=mY-sl*mX;
-    g.append('line').attr('x1',xS(xE[0]-xP)).attr('x2',xS(xE[1]+xP))
-      .attr('y1',yS(sl*(xE[0]-xP)+ic)).attr('y2',yS(sl*(xE[1]+xP)+ic))
-      .attr('stroke','rgba(255,255,255,.15)').attr('stroke-width',1.5).attr('stroke-dasharray','4,4');
-  }
-
+  const mX=d3.mean(pts,d=>d.x),mY=d3.mean(pts,d=>d.y);
+  const num=d3.sum(pts,d=>(d.x-mX)*(d.y-mY)),den=d3.sum(pts,d=>(d.x-mX)**2);
+  if(den!==0){const sl=num/den,ic=mY-sl*mX;
+    g.append('line').attr('x1',xS(xE[0]-xP)).attr('x2',xS(xE[1]+xP)).attr('y1',yS(sl*(xE[0]-xP)+ic)).attr('y2',yS(sl*(xE[1]+xP)+ic))
+      .attr('stroke','rgba(255,255,255,.15)').attr('stroke-width',1.5).attr('stroke-dasharray','4,4');}
   const tooltip=document.getElementById('scatter-tooltip');
   g.selectAll('.dot').data(pts).join('circle')
-    .attr('cx',d=>xS(d.x)).attr('cy',d=>yS(d.y))
-    .attr('r',d=>d.id==='JPN'?7:5)
-    .attr('fill',d=>d.id==='JPN'?'var(--accent)':'var(--accent2)')
-    .attr('fill-opacity',d=>d.id==='JPN'?1:0.7)
+    .attr('cx',d=>xS(d.x)).attr('cy',d=>yS(d.y)).attr('r',d=>d.id==='JPN'?7:5)
+    .attr('fill',d=>d.id==='JPN'?'var(--accent)':'var(--accent2)').attr('fill-opacity',d=>d.id==='JPN'?1:0.7)
     .attr('stroke',d=>d.id==='JPN'?'#fff':'transparent').attr('stroke-width',2)
     .style('filter',d=>d.id==='JPN'?'drop-shadow(0 0 5px var(--accent))':'none')
     .on('mousemove',(event,d)=>{
       tooltip.classList.remove('tooltip-hidden');
       tooltip.innerHTML=`<strong>${FLAGS[d.id]||''} ${d.name}</strong><br>${f.label}: ${fmtScore(d.x)}<br>${yLabel.split('(')[0].trim()}: ${d.y.toFixed(4)}`;
       const r=wrap.getBoundingClientRect();
-      tooltip.style.left=(event.clientX-r.left+14)+'px';
-      tooltip.style.top=(event.clientY-r.top-20)+'px';
+      tooltip.style.left=(event.clientX-r.left+14)+'px'; tooltip.style.top=(event.clientY-r.top-20)+'px';
     }).on('mouseleave',()=>tooltip.classList.add('tooltip-hidden'));
-
   pts.filter(d=>d.id==='JPN').forEach(d=>{
-    g.append('text').attr('x',xS(d.x)+10).attr('y',yS(d.y)+4)
-      .text(`${FLAGS[d.id]} JPN`).attr('fill','var(--accent)').attr('font-size','11px');
-  });
-
+    g.append('text').attr('x',xS(d.x)+10).attr('y',yS(d.y)+4).text(`${FLAGS[d.id]} JPN`).attr('fill','var(--accent)').attr('font-size','11px');});
   g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).ticks(6))
-    .call(a=>a.select('.domain').remove())
-    .call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px'))
-    .call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
+    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
   g.append('g').call(d3.axisLeft(yS).ticks(6))
-    .call(a=>a.select('.domain').remove())
-    .call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px'))
-    .call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
-
+    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
   g.append('text').attr('x',iW/2).attr('y',iH+46).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(f.label);
   g.append('text').attr('transform','rotate(-90)').attr('x',-iH/2).attr('y',-50).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(yLabel);
   g.append('text').attr('x',iW-4).attr('y',14).attr('text-anchor','end').attr('fill',corrColor(corrVal)).attr('font-size','12px').attr('font-weight','700').text(`r = ${fmtCorr(corrVal)}`);
 }
 
 // ============================================================
-// VIEW: 国別スコアランキング
+// 国別スコアランキング
 // ============================================================
-let crSort='desc';
-function initFactorCountryRank(){
-  const ctrl = makeFactorSearch({
-    inputId:'cr-search', listId:'cr-factor-list',
-    onSelect: renderCountryRank
-  });
-  document.getElementById('cr-sort-desc').addEventListener('click',()=>{crSort='desc';tog('cr-sort-desc','cr-sort-asc');renderCountryRank(window._crKey);});
-  document.getElementById('cr-sort-asc').addEventListener('click',()=>{crSort='asc';tog('cr-sort-asc','cr-sort-desc');renderCountryRank(window._crKey);});
-  window._crCtrl = ctrl;
-}
-function renderCountryRank(key){
-  window._crKey=key;
-  const f=DATA.factors[key]; if(!f) return;
+function renderCountryRank(){
+  const key = CURRENT_FACTOR_KEY;
+  const f = DATA.factors[key]; if(!f) return;
   const rows=Object.entries(f.country_scores)
     .map(([id,score])=>({id,score,name:DATA.countries[id]?.name||id,deviation:f.deviation_scores?.[id]}))
-    .filter(r=>r.score!=null)
-    .sort((a,b)=>crSort==='desc'?b.score-a.score:a.score-b.score);
+    .filter(r=>r.score!=null).sort((a,b)=>crSort==='desc'?b.score-a.score:a.score-b.score);
   const maxScore=Math.max(...rows.map(r=>Math.abs(r.score)));
   document.getElementById('cr-result').innerHTML=`
     <div class="card">
       <div class="card-title">${f.label} — 国別スコア（${rows.length}カ国）</div>
       <table class="rank-table">
         <thead><tr><th>#</th><th></th><th>国</th><th style="text-align:right">スコア</th><th style="text-align:right">偏差値</th><th class="rank-bar-cell">バー</th></tr></thead>
-        <tbody>${rows.map((r,i)=>`
-          <tr class="${r.id==='JPN'?'row-jpn':''}">
-            <td class="rank-num">${i+1}</td>
-            <td class="flag-cell">${FLAGS[r.id]||''}</td>
-            <td class="country-name">${r.name} <span style="color:var(--muted);font-size:10px">${r.id}</span></td>
-            <td class="score-val">${fmtScore(r.score)}</td>
-            <td class="deviation-val" style="color:${devColor(r.deviation)}">${r.deviation!=null?r.deviation.toFixed(1):'—'}</td>
-            <td class="rank-bar-cell"><div class="rank-bar-bg"><div class="rank-bar ${r.score>=0?'bar-pos':'bar-neg'}" style="width:${Math.abs(r.score)/maxScore*100}%"></div></div></td>
-          </tr>`).join('')}
-        </tbody>
+        <tbody>${rows.map((r,i)=>`<tr class="${r.id==='JPN'?'row-jpn':''}">
+          <td class="rank-num">${i+1}</td><td class="flag-cell">${FLAGS[r.id]||''}</td>
+          <td class="country-name">${r.name} <span style="color:var(--muted);font-size:10px">${r.id}</span></td>
+          <td class="score-val">${fmtScore(r.score)}</td>
+          <td class="deviation-val" style="color:${devColor(r.deviation)}">${r.deviation!=null?r.deviation.toFixed(1):'—'}</td>
+          <td class="rank-bar-cell"><div class="rank-bar-bg"><div class="rank-bar ${r.score>=0?'bar-pos':'bar-neg'}" style="width:${Math.abs(r.score)/maxScore*100}%"></div></div></td>
+        </tr>`).join('')}</tbody>
       </table>
     </div>`;
 }
 
 // ============================================================
-// VIEW: 国プロフィール
+// 国プロフィール
 // ============================================================
-let profileMode='top', profileFilter='all';
-function initCountryProfile(){
-  buildCountrySelect(document.getElementById('profile-country-select'),'JPN');
-  document.getElementById('profile-country-select').addEventListener('change',renderProfile);
-  document.getElementById('profile-top').addEventListener('click',()=>{profileMode='top';tog('profile-top','profile-bottom');renderProfile();});
-  document.getElementById('profile-bottom').addEventListener('click',()=>{profileMode='bottom';tog('profile-bottom','profile-top');renderProfile();});
-  document.getElementById('profile-filter-all').addEventListener('click',()=>{profileFilter='all';tog('profile-filter-all','profile-filter-sel');renderProfile();});
-  document.getElementById('profile-filter-sel').addEventListener('click',()=>{profileFilter='sel';tog('profile-filter-sel','profile-filter-all');renderProfile();});
-  renderProfile();
-}
 function renderProfile(){
   const id=document.getElementById('profile-country-select').value;
   const country=DATA.countries[id]; if(!country) return;
-  let factors=Object.entries(country.factor_scores)
-    .filter(([,v])=>v.deviation!=null);
+  let factors=Object.entries(country.factor_scores).filter(([,v])=>v.deviation!=null);
   if(profileFilter==='sel') factors=factors.filter(([,v])=>v.selected);
   factors=factors.sort(([,a],[,b])=>profileMode==='top'?b.deviation-a.deviation:a.deviation-b.deviation).slice(0,20);
   document.getElementById('profile-result').innerHTML=`
@@ -747,59 +723,41 @@ function renderProfile(){
       </div>
     </div>
     <div class="card">
-      <div class="card-title">${profileMode==='top'?'🏆 トップ因子':'⚠️ ワースト因子'}（偏差値 ${profileMode==='top'?'高':低}い順 Top 20${profileFilter==='sel'?' ・選抜のみ':''}）</div>
+      <div class="card-title">${profileMode==='top'?'🏆 トップ因子':'⚠️ ワースト因子'}（偏差値${profileMode==='top'?'高':'低'}い順 Top 20${profileFilter==='sel'?' ・選抜のみ':''}）</div>
       <table class="rank-table">
         <thead><tr><th>#</th><th>因子</th><th>カテゴリ</th><th style="text-align:right">スコア</th><th style="text-align:right">偏差値</th></tr></thead>
-        <tbody>${factors.map(([fname,fv],i)=>`
-          <tr>
-            <td class="rank-num">${i+1}</td>
-            <td>${fv.label||fname}${fv.selected?'<span class="badge-selected">選抜</span>':''}</td>
-            <td style="color:var(--muted);font-size:10px">${fv.category||''}</td>
-            <td class="score-val">${fmtScore(fv.score)}</td>
-            <td class="deviation-val" style="color:${devColor(fv.deviation)}">${fv.deviation!=null?fv.deviation.toFixed(1):'—'}</td>
-          </tr>`).join('')}
-        </tbody>
+        <tbody>${factors.map(([fname,fv],i)=>`<tr>
+          <td class="rank-num">${i+1}</td>
+          <td>${fv.label||fname}${fv.selected?'<span class="badge-selected">選抜</span>':''}</td>
+          <td style="color:var(--muted);font-size:10px">${fv.category||''}</td>
+          <td class="score-val">${fmtScore(fv.score)}</td>
+          <td class="deviation-val" style="color:${devColor(fv.deviation)}">${fv.deviation!=null?fv.deviation.toFixed(1):'—'}</td>
+        </tr>`).join('')}</tbody>
       </table>
     </div>`;
 }
 
 // ============================================================
-// VIEW: 2国比較
+// 2国比較
 // ============================================================
-let cmpFilter='sel';
-function initCountryCompare(){
-  buildCountrySelect(document.getElementById('cmp-country1'),'JPN');
-  buildCountrySelect(document.getElementById('cmp-country2'),'USA');
-  document.getElementById('cmp-country1').addEventListener('change',renderCompare);
-  document.getElementById('cmp-country2').addEventListener('change',renderCompare);
-  document.getElementById('cmp-filter-sel').addEventListener('click',()=>{cmpFilter='sel';tog('cmp-filter-sel','cmp-filter-all');renderCompare();});
-  document.getElementById('cmp-filter-all').addEventListener('click',()=>{cmpFilter='all';tog('cmp-filter-all','cmp-filter-sel');renderCompare();});
-  renderCompare();
-}
 function renderCompare(){
   const id1=document.getElementById('cmp-country1').value;
   const id2=document.getElementById('cmp-country2').value;
-  const c1=DATA.countries[id1], c2=DATA.countries[id2];
-  if(!c1||!c2) return;
-  let pool=ALL_FACTORS;
-  if(cmpFilter==='sel') pool=pool.filter(f=>f.selected);
+  const c1=DATA.countries[id1], c2=DATA.countries[id2]; if(!c1||!c2) return;
+  let pool=cmpFilter==='sel'?ALL_FACTORS.filter(f=>f.selected):ALL_FACTORS;
   const ranked=pool
     .filter(f=>{const s1=c1.factor_scores[f.key],s2=c2.factor_scores[f.key];return s1?.score!=null&&s2?.score!=null;})
-    .map(f=>({...f, d1:c1.factor_scores[f.key].deviation, d2:c2.factor_scores[f.key].deviation,
+    .map(f=>({...f,d1:c1.factor_scores[f.key].deviation,d2:c2.factor_scores[f.key].deviation,
       diff:(c1.factor_scores[f.key].deviation||50)-(c2.factor_scores[f.key].deviation||50)}))
     .sort((a,b)=>b.diff-a.diff);
-  const renderRows=items=>items.map(f=>{
-    const w1=Math.max(0,(f.d1||50));
-    const w2=Math.max(0,(f.d2||50));
-    return `<div class="compare-row">
-      <span class="cf-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</span>
-      <div><div class="compare-bar-wrap"><div class="compare-bar" style="width:${w1}%;background:${devColor(f.d1)}"></div></div>
-           <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:1px">${f.d1!=null?f.d1.toFixed(1):'—'}</div></div>
-      <div><div class="compare-bar-wrap"><div class="compare-bar" style="width:${w2}%;background:${devColor(f.d2)}"></div></div>
-           <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:1px">${f.d2!=null?f.d2.toFixed(1):'—'}</div></div>
-      <div style="font-size:11px;color:${f.diff>5?'var(--pos)':f.diff<-5?'var(--neg)':'var(--muted)'}">${f.diff>0?'▲':'▼'} ${Math.abs(f.diff).toFixed(1)}pt</div>
-    </div>`;
-  }).join('');
+  const rows=items=>items.map(f=>`<div class="compare-row">
+    <span style="font-size:12px">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</span>
+    <div><div class="compare-bar-wrap"><div class="compare-bar" style="width:${Math.max(0,f.d1||50)}%;background:${devColor(f.d1)}"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:1px">${f.d1!=null?f.d1.toFixed(1):'—'}</div></div>
+    <div><div class="compare-bar-wrap"><div class="compare-bar" style="width:${Math.max(0,f.d2||50)}%;background:${devColor(f.d2)}"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:1px">${f.d2!=null?f.d2.toFixed(1):'—'}</div></div>
+    <div style="font-size:11px;color:${f.diff>5?'var(--pos)':f.diff<-5?'var(--neg)':'var(--muted)'}">${f.diff>0?'▲':'▼'} ${Math.abs(f.diff).toFixed(1)}pt</div>
+  </div>`).join('');
   document.getElementById('cmp-result').innerHTML=`
     <div class="card" style="margin-bottom:14px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -814,41 +772,84 @@ function renderCompare(){
     <div class="card" style="margin-bottom:14px">
       <div class="card-title">${FLAGS[id1]} ${c1.name} が優位（Top 15）</div>
       <div class="compare-row header"><span></span><span>${id1}</span><span>${id2}</span><span>差</span></div>
-      ${renderRows(ranked.slice(0,15))}
+      ${rows(ranked.slice(0,15))}
     </div>
     <div class="card">
       <div class="card-title">${FLAGS[id2]} ${c2.name} が優位（Top 15）</div>
       <div class="compare-row header"><span></span><span>${id1}</span><span>${id2}</span><span>差</span></div>
-      ${renderRows([...ranked].reverse().slice(0,15))}
+      ${rows([...ranked].reverse().slice(0,15))}
     </div>`;
 }
 
 // ============================================================
-// VIEW: World Effect Benchmark
+// World Effect Benchmark
 // ============================================================
-let wefMode='selected', wefHighlightKey=null;
-function initWorldEffect(){
-  document.getElementById('wef-mode-selected').addEventListener('click',()=>{wefMode='selected';tog('wef-mode-selected','wef-mode-all');renderWEF();});
-  document.getElementById('wef-mode-all').addEventListener('click',()=>{wefMode='all';tog('wef-mode-all','wef-mode-selected');renderWEF();});
+function renderWefDropdown(){
+  const q = document.getElementById('wef-search').value.trim().toLowerCase();
+  const dd = document.getElementById('wef-dropdown');
+  if(!q){ dd.classList.remove('open'); return; }
+  let pool = ALL_FACTORS.filter(f=>f.corr_growth!=null&&f.corr_happiness!=null);
+  pool = pool.filter(f=>f.label.toLowerCase().includes(q)||f.key.toLowerCase().includes(q)).slice(0,30);
+  document.getElementById('wef-drop-list').innerHTML = pool.map(f=>`
+    <div class="fsel-drop-item" onclick="setWefHighlight('${f.key}','${f.label.replace(/'/g,"\\'")}')">
+      <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</div>
+      <div class="di-meta">
+        <span class="${f.corr_growth>=0.2?'fsel-corr-g':f.corr_growth<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">成長 ${fmtCorr(f.corr_growth)}</span>
+        <span class="${f.corr_happiness>=0.2?'fsel-corr-g':f.corr_happiness<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">幸福 ${fmtCorr(f.corr_happiness)}</span>
+      </div>
+    </div>`).join('') || '<div class="empty" style="padding:12px">該当なし</div>';
+  dd.classList.add('open');
+}
 
-  // ハイライト検索
-  const wefSearchCtrl = makeFactorSearch({
-    inputId:'wef-search', listId:'wef-highlight-list',
-    onSelect:(key)=>{wefHighlightKey=key;renderWEF();},
-    defaultKey:null
-  });
-  // 初期はハイライトなし
-  document.getElementById('wef-search').value='';
-  document.getElementById('wef-search').addEventListener('input',()=>{
-    if(!document.getElementById('wef-search').value.trim()) wefHighlightKey=null;
-  });
+function setWefHighlight(key, label){
+  wefHighlightKey = key;
+  document.getElementById('wef-search').value = label;
+  document.getElementById('wef-dropdown').classList.remove('open');
+  document.getElementById('wef-clear-hl').style.display='inline-block';
+  const f = DATA.factors[key];
+  document.getElementById('wef-hl-info').innerHTML = f ? `
+    <div style="padding:8px 14px;background:rgba(232,200,64,.08);border:1px solid rgba(232,200,64,.25);border-radius:var(--r);display:inline-flex;gap:16px;align-items:center;font-size:12px">
+      <span style="color:var(--accent);font-weight:700">⭐ ${f.label}</span>
+      <span style="color:${corrColor(f.corr_growth)}">成長 ${fmtCorr(f.corr_growth)}</span>
+      <span style="color:${corrColor(f.corr_happiness)}">幸福 ${fmtCorr(f.corr_happiness)}</span>
+      ${quadrantBadgeInline(f.corr_growth, f.corr_happiness)}
+    </div>` : '';
   renderWEF();
 }
+
+function clearWefHighlight(){
+  wefHighlightKey=null;
+  document.getElementById('wef-search').value='';
+  document.getElementById('wef-clear-hl').style.display='none';
+  document.getElementById('wef-hl-info').innerHTML='';
+  renderWEF();
+}
+
+function quadrantBadgeInline(cg,ch){
+  const G=(cg||0)>=0.2,G_=(cg||0)<=-0.2,H=(ch||0)>=0.2,H_=(ch||0)<=-0.2;
+  let label,color;
+  if(G&&H){label='SUCCESS';color='var(--pos)'}
+  else if(G&&H_){label='SPARTA';color='var(--accent)'}
+  else if(H&&G_){label='SPOIL';color='var(--accent2)'}
+  else if(G_&&H_){label='SABOTAGE';color='var(--neg)'}
+  else{label='SLIGHT';color='var(--muted)'}
+  return `<span style="color:${color};font-weight:700">${label}</span>`;
+}
+
 function renderWEF(){
   const tooltip=document.getElementById('wef-tooltip');
-  const pts=(wefMode==='selected'?ALL_FACTORS.filter(f=>f.selected):ALL_FACTORS)
-    .filter(f=>f.corr_growth!==null&&f.corr_happiness!==null)
-    .map(f=>({key:f.key,label:f.label,selected:f.selected,x:f.corr_happiness,y:f.corr_growth}));
+
+  // 選抜モード: 選抜148 + ハイライト因子（選抜外でも含める）
+  let basePts = (wefMode==='selected'?ALL_FACTORS.filter(f=>f.selected):ALL_FACTORS)
+    .filter(f=>f.corr_growth!=null&&f.corr_happiness!=null);
+
+  // ハイライト因子が選抜外でも必ず含める
+  if(wefHighlightKey && !basePts.find(f=>f.key===wefHighlightKey)){
+    const hlf = ALL_FACTORS.find(f=>f.key===wefHighlightKey);
+    if(hlf && hlf.corr_growth!=null && hlf.corr_happiness!=null) basePts = [...basePts, hlf];
+  }
+
+  const pts = basePts.map(f=>({key:f.key,label:f.label,selected:f.selected,x:f.corr_happiness,y:f.corr_growth}));
 
   const wrap=document.querySelector('#view-world-effect .chart-wrap');
   const W=Math.max(wrap?.clientWidth||700,600), H=500;
@@ -856,12 +857,11 @@ function renderWEF(){
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
   const xS=d3.scaleLinear().domain([-0.8,0.8]).range([0,iW]);
   const yS=d3.scaleLinear().domain([-0.7,0.7]).range([iH,0]);
-
   const svg=d3.select('#wef-svg').attr('width',W).attr('height',H).attr('style','display:block');
   svg.selectAll('*').remove();
   const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
 
-  // Quadrant bg
+  // 背景
   [{x1:xS(0),x2:iW,y1:0,y2:yS(0),fill:'rgba(93,214,168,.04)',label:'SUCCESS',lx:iW-8,ly:14,a:'end'},
    {x1:0,x2:xS(0),y1:0,y2:yS(0),fill:'rgba(74,158,255,.03)',label:'SPARTA',lx:8,ly:14,a:'start'},
    {x1:xS(0),x2:iW,y1:yS(0),y2:iH,fill:'rgba(255,107,107,.03)',label:'SPOIL',lx:iW-8,ly:iH-6,a:'end'},
@@ -877,24 +877,25 @@ function renderWEF(){
     g.append('line').attr('x1',0).attr('x2',iW).attr('y1',yS(v)).attr('y2',yS(v)).attr('stroke','var(--border)');
   });
 
-  pts.forEach(pt=>{
+  // ドット（ハイライトを最後に描いて最前面に）
+  const nonHL = pts.filter(pt=>pt.key!==wefHighlightKey);
+  const hlPt  = pts.find(pt=>pt.key===wefHighlightKey);
+
+  function drawDot(pt){
     const isHL=pt.key===wefHighlightKey;
     const x=pt.x, y=pt.y;
     let fill;
-    if(isHL){fill='var(--accent)'}
-    else if(x>=0.2&&y>=0.2){fill='var(--pos)'}
-    else if(x<=-0.2&&y>=0.2){fill='var(--accent2)'}
-    else if(x>=0.2&&y<=-0.2){fill='var(--neg)'}
-    else if(x<=-0.2&&y<=-0.2){fill='#555'}
-    else{fill='var(--muted)'}
-
+    if(isHL){ fill='var(--accent)'; }
+    else if(x>=0.2&&y>=0.2){ fill='var(--pos)'; }
+    else if(x<=-0.2&&y>=0.2){ fill='var(--accent2)'; }
+    else if(x>=0.2&&y<=-0.2){ fill='var(--neg)'; }
+    else if(x<=-0.2&&y<=-0.2){ fill='#555'; }
+    else{ fill='var(--muted)'; }
     const r=isHL?9:(wefMode==='selected'?6:4);
-    const op=isHL?1:0.8;
-
+    const op=isHL?1:0.75;
     g.append('circle').attr('cx',xS(pt.x)).attr('cy',yS(pt.y)).attr('r',r)
-      .attr('fill',fill).attr('fill-opacity',op)
-      .style('cursor','pointer')
-      .style('filter',isHL?'drop-shadow(0 0 6px var(--accent))':'none')
+      .attr('fill',fill).attr('fill-opacity',op).style('cursor','pointer')
+      .style('filter',isHL?'drop-shadow(0 0 8px var(--accent))':'none')
       .on('mousemove',(event)=>{
         tooltip.classList.remove('tooltip-hidden');
         tooltip.innerHTML=`<strong>${pt.label}</strong>${pt.selected?'<span class="badge-selected" style="margin-left:6px">選抜</span>':''}<br>成長相関: <span style="color:${corrColor(pt.y)}">${fmtCorr(pt.y)}</span><br>幸福相関: <span style="color:${corrColor(pt.x)}">${fmtCorr(pt.x)}</span>`;
@@ -902,14 +903,15 @@ function renderWEF(){
         tooltip.style.left=(event.clientX-rect.left+14)+'px';
         tooltip.style.top=(event.clientY-rect.top-20)+'px';
       }).on('mouseleave',()=>tooltip.classList.add('tooltip-hidden'));
-
     if(wefMode==='selected'||isHL){
       g.append('text').attr('x',xS(pt.x)+r+2).attr('y',yS(pt.y)+4)
         .attr('fill',isHL?'var(--accent)':'rgba(255,255,255,.55)')
         .attr('font-size',isHL?'12px':'9px').attr('font-weight',isHL?'700':'400')
         .attr('pointer-events','none').text(pt.label);
     }
-  });
+  }
+  nonHL.forEach(drawDot);
+  if(hlPt) drawDot(hlPt);  // ハイライトを最前面
 
   g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).tickValues([-0.6,-0.4,-0.2,0,0.2,0.4,0.6]))
     .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').remove());
@@ -920,24 +922,47 @@ function renderWEF(){
 }
 
 // ============================================================
-// UTILS
-// ============================================================
-function tog(activeId, inactiveId){
-  document.getElementById(activeId).classList.add('active');
-  document.getElementById(inactiveId).classList.remove('active');
-}
-
-// ============================================================
-// INIT
+// INIT ALL
 // ============================================================
 function initAll(){
-  initFactorKgi();
-  initFactorRank();
-  initFactorScatter();
-  initFactorCountryRank();
-  initCountryProfile();
-  initCountryCompare();
-  initWorldEffect();
+  // サブタブ
+  document.querySelectorAll('.sub-tab').forEach(t=>
+    t.addEventListener('click',()=>showSubtab(t.dataset.subtab)));
+
+  // 散布図縦軸
+  document.getElementById('scatter-kgi-growth').addEventListener('click',()=>{
+    scatterKgi='growth'; tog('scatter-kgi-growth','scatter-kgi-hap'); renderScatter();});
+  document.getElementById('scatter-kgi-hap').addEventListener('click',()=>{
+    scatterKgi='happiness'; tog('scatter-kgi-hap','scatter-kgi-growth'); renderScatter();});
+
+  // 国別スコアランキングソート
+  document.getElementById('cr-sort-desc').addEventListener('click',()=>{crSort='desc';tog('cr-sort-desc','cr-sort-asc');renderCountryRank();});
+  document.getElementById('cr-sort-asc').addEventListener('click',()=>{crSort='asc';tog('cr-sort-asc','cr-sort-desc');renderCountryRank();});
+
+  // 相関ランキング件数
+  document.getElementById('rank-n-select').addEventListener('change',renderFactorRank);
+
+  // 国プロフィール
+  buildCountrySelect(document.getElementById('profile-country-select'),'JPN');
+  document.getElementById('profile-country-select').addEventListener('change',renderProfile);
+  document.getElementById('profile-top').addEventListener('click',()=>{profileMode='top';tog('profile-top','profile-bottom');renderProfile();});
+  document.getElementById('profile-bottom').addEventListener('click',()=>{profileMode='bottom';tog('profile-bottom','profile-top');renderProfile();});
+  document.getElementById('profile-filter-all').addEventListener('click',()=>{profileFilter='all';tog('profile-filter-all','profile-filter-sel');renderProfile();});
+  document.getElementById('profile-filter-sel').addEventListener('click',()=>{profileFilter='sel';tog('profile-filter-sel','profile-filter-all');renderProfile();});
+  renderProfile();
+
+  // 2国比較
+  buildCountrySelect(document.getElementById('cmp-country1'),'JPN');
+  buildCountrySelect(document.getElementById('cmp-country2'),'USA');
+  document.getElementById('cmp-country1').addEventListener('change',renderCompare);
+  document.getElementById('cmp-country2').addEventListener('change',renderCompare);
+  document.getElementById('cmp-filter-sel').addEventListener('click',()=>{cmpFilter='sel';tog('cmp-filter-sel','cmp-filter-all');renderCompare();});
+  document.getElementById('cmp-filter-all').addEventListener('click',()=>{cmpFilter='all';tog('cmp-filter-all','cmp-filter-sel');renderCompare();});
+  renderCompare();
+
+  // WEF
+  document.getElementById('wef-mode-selected').addEventListener('click',()=>{wefMode='selected';tog('wef-mode-selected','wef-mode-all');renderWEF();});
+  document.getElementById('wef-mode-all').addEventListener('click',()=>{wefMode='all';tog('wef-mode-all','wef-mode-selected');renderWEF();});
 }
 
 loadData();
