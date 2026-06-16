@@ -473,25 +473,96 @@ function toggleFselDropdown(){
   }
 }
 
+// ===== 検索語展開辞書（カタカナ外来語・上位概念→同義語群） =====
+const SEARCH_SYNONYMS = {
+  // 幸福系
+  'ハッピー':    ['幸福', 'happy', 'happiness', '満足', '幸せ'],
+  'しあわせ':    ['幸福', '満足', '幸せ', 'happiness'],
+  'ウェルビーイング': ['幸福', '健康', 'wellbeing', '満足'],
+  'ウェルネス':  ['健康', '幸福', 'wellness'],
+  // 労働・仕事系
+  'ハードワーク': ['労働', '残業', '勤勉', '長時間', '勤続', '働く'],
+  'ワークライフ': ['労働', '余暇', 'work life', '仕事'],
+  'バーンアウト': ['燃え尽き', 'burnout', '過労', 'ストレス'],
+  'エンゲージメント': ['社員の熱意', '従業員', 'engagement', '熱意'],
+  // 食べ物・食品系
+  '食べ物':  ['食料', '食品', '漁獲', '生産量', '農産', '水産', '食肉', '野菜', '魚'],
+  '食料':    ['食品', '漁獲', '農産', '食肉', '食べ物'],
+  '魚':      ['漁獲', '水産', 'fish', '魚類', '海産'],
+  '野菜':    ['農産', '生産量', '野菜', 'vegetable'],
+  '肉':      ['食肉', '牛肉', '豚肉', '畜産', '肉類'],
+  'フード':  ['食料', '食品', '食べ物', 'food'],
+  // 経済系
+  'お金':    ['GDP', '経済', '収入', '所得', '賃金', '給与'],
+  '豊かさ':  ['GDP', '経済', '所得', '生活水準', '富'],
+  'インフレ': ['物価', 'inflation', 'GDP', '経済'],
+  'ビジネス': ['起業', '経済', '企業', 'business', 'GDP'],
+  // 教育系
+  '学力':    ['PISA', '教育', '数学', '読解', '科学', '学習'],
+  '勉強':    ['教育', '学力', '就学', 'PISA', '学習'],
+  // 健康系
+  'けんこう': ['健康', '寿命', '医療', '疾患', '死亡率'],
+  'いのち':  ['寿命', '死亡率', '自殺', '健康'],
+  'メンタル': ['自殺', 'ストレス', 'うつ', '精神', '心理'],
+  'うつ':    ['自殺', 'メンタル', 'うつ病', 'ストレス', '精神'],
+  // 社会系
+  'つながり': ['社会資本', '信頼', 'ネットワーク', '孤独', '友人'],
+  '信頼':    ['trust', '社会資本', '信頼度', '社会信頼'],
+  '格差':    ['不平等', 'ジニ', '貧困', '所得格差', '格差'],
+  'ジェンダー': ['男女', '女性', 'gender', '平等', '女性管理職'],
+  // 環境系
+  'エコ':    ['環境', 'CO2', '再生可能', '脱炭素', '温暖化'],
+  'かんきょう': ['環境', 'CO2', '再生可能', '自然', 'エネルギー'],
+  // 政治系
+  '政治':    ['政府', '民主主義', '腐敗', '選挙', '政策'],
+  '汚職':    ['腐敗', '汚職', 'corruption', '政府', '透明性'],
+  // 文化系
+  'スポーツ': ['オリンピック', '五輪', 'sports', '運動', 'スポーツ時間'],
+  'カルチャー': ['文化', 'culture', '芸術', '価値観'],
+};
+
+// カタカナ→ひらがな変換（ゆらぎ対応）
+function kata2hira(str) {
+  return str.replace(/[\u30A1-\u30F6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+}
+
+// クエリを展開（同義語・ひらがな正規化）
+function expandQuery(q) {
+  const terms = new Set([q]);
+  const h = kata2hira(q);
+  if(h !== q) terms.add(h);
+  // 辞書引き（カタカナ・ひらがな両方でチェック）
+  for(const [key, syns] of Object.entries(SEARCH_SYNONYMS)) {
+    if(kata2hira(key.toLowerCase()) === h || key.toLowerCase() === q) {
+      syns.forEach(s => terms.add(s.toLowerCase()));
+    }
+  }
+  return [...terms];
+}
+
 function scoreMatch(f, q) {
   if(!q) return 1;
+  const terms = expandQuery(q);  // クエリを展開
   const label = f.label.toLowerCase();
   const key   = f.key.toLowerCase();
   const cat   = (f.category||'').toLowerCase();
-  if(label === q)          return 100;
-  if(label.startsWith(q)) return 80;
-  if(label.includes(q))   return 60;
-  if(key.includes(q))     return 40;
-  if(cat.includes(q))     return 30;
-  const kws = DATA.factors[f.key]?.search_keywords || [];
-  let kwScore = 0;
-  for(const kw of kws) {
-    const k = kw.toLowerCase();
-    if(k === q)           { kwScore = Math.max(kwScore, 55); break; }
-    else if(k.startsWith(q)) { kwScore = Math.max(kwScore, 45); }
-    else if(k.includes(q))   { kwScore = Math.max(kwScore, 35); }
+  const kws   = (DATA.factors[f.key]?.search_keywords || []).map(k=>k.toLowerCase());
+
+  let best = 0;
+  for(const t of terms) {
+    if(label === t)          best = Math.max(best, 100);
+    if(label.startsWith(t)) best = Math.max(best, 80);
+    if(label.includes(t))   best = Math.max(best, 60);
+    if(cat.includes(t))     best = Math.max(best, 35);
+    if(key.includes(t))     best = Math.max(best, 30);
+    for(const kw of kws) {
+      if(kw === t)           best = Math.max(best, 55);
+      else if(kw.startsWith(t)) best = Math.max(best, 45);
+      else if(kw.includes(t))   best = Math.max(best, 38);
+    }
+    if(best >= 100) break;
   }
-  return kwScore;
+  return best;
 }
 
 function searchPool(pool, q) {
@@ -503,8 +574,15 @@ function searchPool(pool, q) {
 
 function matchedKw(f, q) {
   if(!q) return null;
+  const terms = expandQuery(q);
   const kws = DATA.factors[f.key]?.search_keywords || [];
-  return kws.find(kw => kw.toLowerCase().includes(q.toLowerCase())) || null;
+  // 展開語のうちどれかにマッチしたキーワードを返す
+  for(const t of terms) {
+    const hit = kws.find(kw => kw.toLowerCase().includes(t));
+    if(hit && t !== q) return `${hit} (≒${q})`;  // 展開語ヒット時は元クエリも表示
+    if(hit) return hit;
+  }
+  return null;
 }
 
 function renderFselDropdown(){
