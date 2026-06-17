@@ -142,6 +142,108 @@
   .wef-search-wrap input:focus{border-color:var(--accent2)}
   #wef-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:260px;overflow-y:auto;display:none;margin-top:4px}
   #wef-dropdown.open{display:block}
+
+/* ============================================================
+   RESPONSIVE / MOBILE
+   ============================================================ */
+
+/* ハンバーガーボタン（モバイルのみ表示） */
+#hamburger {
+  display: none;
+  flex-direction: column; gap: 5px; cursor: pointer;
+  padding: 6px; margin-right: 4px; flex-shrink: 0;
+}
+#hamburger span {
+  display: block; width: 20px; height: 2px;
+  background: var(--text); border-radius: 2px; transition: var(--tr);
+}
+
+/* サイドバーオーバーレイ */
+#sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 99;
+}
+#sidebar-overlay.open { display: block; }
+
+@media (max-width: 768px) {
+  /* サイドバー: オフキャンバス化 */
+  #sidebar {
+    position: fixed; left: -240px; top: 0; bottom: 0;
+    z-index: 100; width: 240px;
+    transition: left .25s ease; box-shadow: 4px 0 20px rgba(0,0,0,.5);
+  }
+  #sidebar.open { left: 0; }
+
+  /* ハンバーガー表示 */
+  #hamburger { display: flex; }
+
+  /* トップバー */
+  #topbar { padding: 0 12px; height: 48px; }
+  #topbar h2 { font-size: 14px; }
+  #topbar .badge { font-size: 10px; padding: 2px 7px; }
+  #topbar-badge { display: none; }
+
+  /* コンテンツ */
+  #content { padding: 14px 14px; }
+
+  /* 因子セレクターバー */
+  #factor-selector-bar { padding: 10px 14px; }
+  .fsel-inner { flex-direction: column; gap: 6px; align-items: stretch; }
+  .fsel-current { font-size: 12px; }
+  #fsel-corr-display, #fsel-dev-display { font-size: 11px; }
+
+  /* サブタブ: スクロール可能に */
+  .sub-tabs { overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .sub-tab { font-size: 12px; padding: 7px 12px; flex-shrink: 0; }
+
+  /* コントロール行 */
+  .control-row { gap: 8px; }
+  .control-group label { font-size: 10px; }
+  select, input[type=text] { font-size: 13px; min-width: 0; width: 100%; }
+  .toggle-group { flex-wrap: wrap; }
+  .btn { padding: 6px 12px; font-size: 12px; }
+
+  /* KGI相関カード */
+  .corr-row { flex-direction: column; gap: 8px; }
+  .corr-card { min-width: 0; }
+  .corr-card .value { font-size: 22px; }
+
+  /* テーブル: 横スクロール */
+  .card { padding: 12px 12px; overflow-x: auto; }
+  .rank-table { min-width: 480px; }
+  .rank-table th, .rank-table td { padding: 5px 8px; font-size: 11px; }
+  .rank-bar-cell { width: 60px; }
+
+  /* 2カラムグリッド → 1カラム */
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 相関ランキングの2カラム */
+  #rank-result > div { display: block !important; }
+  #rank-result > div > .card { margin-bottom: 12px; }
+
+  /* 2国比較 */
+  .compare-row { grid-template-columns: 1fr 52px 52px 60px; gap: 6px; font-size: 11px; }
+
+  /* 散布図・WEF: 横幅いっぱい */
+  #scatter-wrap, #view-world-effect .chart-wrap { overflow-x: auto; }
+  #scatter-svg, #wef-svg { min-width: 500px; }
+
+  /* ドロップダウン */
+  #fsel-dropdown, #wef-dropdown { position: fixed; left: 14px; right: 14px; top: auto; max-height: 55vh; }
+
+  /* 国プロフィールの国情報 */
+  #profile-result .card > div[style*="flex"] { flex-direction: column; gap: 10px; }
+}
+
+@media (max-width: 480px) {
+  .sub-tab { padding: 6px 10px; font-size: 11px; }
+  .corr-card .value { font-size: 20px; }
+  .rank-table { min-width: 400px; }
+  .compare-row { grid-template-columns: 1fr 44px 44px 50px; }
+}
 </style>
 <!-- Transformers.js（埋め込みベクトル検索用） -->
 <script type="importmap">
@@ -171,7 +273,13 @@
 
   <!-- Main -->
   <div id="main">
+    <!-- モバイル用サイドバーオーバーレイ -->
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <div id="topbar">
+      <div id="hamburger" onclick="toggleSidebar()" aria-label="メニュー">
+        <span></span><span></span><span></span>
+      </div>
       <h2 id="view-title">因子を選ぶ</h2>
       <div class="badge" id="topbar-badge">1180因子</div>
       <div class="badge" id="emb-status" style="color:var(--muted)">🔄 ベクトル初期化中…</div>
@@ -490,6 +598,10 @@ function showView(id) {
   document.getElementById('view-'+id)?.classList.add('active');
   document.querySelector(`[data-view="${id}"]`)?.classList.add('active');
   document.getElementById('view-title').textContent = VIEW_TITLES[id]||'';
+  if(window.innerWidth <= 768) {
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
+  }
   // 因子セレクターバーはfactor-hubのとき表示
   const bar = document.getElementById('factor-selector-bar');
   if(FACTOR_HUB_VIEWS.has(id)){
@@ -1266,6 +1378,25 @@ function initAll(){
   document.getElementById('wef-mode-all').addEventListener('click',()=>{wefMode='all';tog('wef-mode-all','wef-mode-selected');renderWEF();});
 }
 
+// ===== サイドバー開閉（モバイル） =====
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// ナビアイテムクリック時にモバイルはサイドバーを閉じる
+document.querySelectorAll('.nav-item').forEach(el =>
+  el.addEventListener('click', () => {
+    if(window.innerWidth <= 768) closeSidebar();
+  })
+);
+
 // moduleスコープの関数をwindowに登録
 window.toggleFselDropdown = toggleFselDropdown;
 window.renderFselDropdown = renderFselDropdown;
@@ -1273,6 +1404,8 @@ window.selectFactor = selectFactor;
 window.renderWefDropdown = renderWefDropdown;
 window.setWefHighlight = setWefHighlight;
 window.clearWefHighlight = clearWefHighlight;
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
 window.downloadResult = window.downloadResult || function(){};
 
 loadData();
