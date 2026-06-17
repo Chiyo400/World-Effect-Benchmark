@@ -143,6 +143,10 @@
   #wef-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:260px;overflow-y:auto;display:none;margin-top:4px}
   #wef-dropdown.open{display:block}
 </style>
+<!-- Transformers.js（埋め込みベクトル検索用） -->
+<script type="importmap">
+{"imports":{"@xenova/transformers":"https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"}}
+</script>
 </head>
 <body>
 <div id="app">
@@ -170,6 +174,7 @@
     <div id="topbar">
       <h2 id="view-title">因子を選ぶ</h2>
       <div class="badge" id="topbar-badge">1180因子</div>
+      <div class="badge" id="emb-status" style="color:var(--muted)">🔄 ベクトル初期化中…</div>
     </div>
 
     <!-- 共有因子セレクターバー（因子HUBのサブページで表示） -->
@@ -336,7 +341,7 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 // ============================================================
 // STATE
 // ============================================================
@@ -369,6 +374,82 @@ const FLAGS = {
 // ============================================================
 // LOAD
 // ============================================================
+// ===== 埋め込みベクトル検索 =====
+let EMB_KEYS = null;      // 因子keyの配列
+let EMB_VECS = null;      // Float32Array[]（正規化済み）
+let EMB_READY = false;
+let EMB_EXTRACTOR = null; // Transformers.jsのパイプライン
+
+async function initEmbeddings() {
+  // embeddings.jsonがあればそちらを優先（高速）
+  try {
+    const res = await fetch('embeddings.json');
+    if(res.ok) {
+      const emb = await res.json();
+      EMB_KEYS = emb.keys;
+      EMB_VECS = emb.embeddings.map(v => new Float32Array(v));
+      EMB_READY = true;
+      updateEmbStatus('✅ ベクトル検索 ON');
+      console.log('[Embed] embeddings.json 読み込み完了:', EMB_KEYS.length, '件');
+      return;
+    }
+  } catch(e) {}
+
+  // なければTransformers.jsで動的生成
+  updateEmbStatus('🔄 ベクトルモデル読み込み中…');
+  try {
+    const { pipeline, env } = await import('@xenova/transformers');
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+    EMB_EXTRACTOR = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+
+    updateEmbStatus('🔄 因子ベクトル計算中…');
+    const labels = ALL_FACTORS.map(f => f.label + ' ' + f.category);
+    const BATCH = 32;
+    const vecs = [];
+    for(let i=0; i<labels.length; i+=BATCH) {
+      const out = await EMB_EXTRACTOR(labels.slice(i,i+BATCH), {pooling:'mean', normalize:true});
+      for(let j=0;j<out.length;j++) vecs.push(new Float32Array(out[j].data));
+      await new Promise(r=>setTimeout(r,0));
+    }
+    EMB_KEYS = ALL_FACTORS.map(f=>f.key);
+    EMB_VECS = vecs;
+    EMB_READY = true;
+    updateEmbStatus('✅ ベクトル検索 ON');
+    console.log('[Embed] 動的生成完了:', EMB_KEYS.length, '件');
+  } catch(e) {
+    updateEmbStatus('⚠️ ベクトル検索 OFF');
+    console.warn('[Embed] 初期化失敗:', e);
+  }
+}
+
+function updateEmbStatus(msg) {
+  const el = document.getElementById('emb-status');
+  if(el) el.textContent = msg;
+}
+
+// クエリをベクトル化して内積上位N件を返す
+async function semanticSearch(q, topN=15) {
+  if(!EMB_READY || !q) return [];
+  let qVec;
+  if(EMB_EXTRACTOR) {
+    const out = await EMB_EXTRACTOR([q], {pooling:'mean', normalize:true});
+    qVec = new Float32Array(out[0].data);
+  } else {
+    // embeddings.jsonモードではリアルタイムベクトル化不可
+    // → 代替: キーワード展開のみ
+    return [];
+  }
+  // 内積計算（正規化済みなのでコサイン類似度と等価）
+  const scores = EMB_VECS.map((vec, i) => {
+    let dot = 0;
+    for(let j=0;j<vec.length;j++) dot += vec[j]*qVec[j];
+    return { key: EMB_KEYS[i], score: dot };
+  });
+  scores.sort((a,b)=>b.score-a.score);
+  return scores.slice(0, topN);
+}
+
 async function loadData() {
   try {
     const res = await fetch('data.json');
@@ -384,6 +465,8 @@ async function loadData() {
     document.getElementById('loading').style.display='none';
     initAll();
     showView('factor-hub');
+    // 埋め込み初期化（バックグラウンド）
+    initEmbeddings();
   } catch(e) {
     document.getElementById('loading').innerHTML=
       `<div style="color:var(--neg)">⚠️ data.json を同じディレクトリに配置してください。</div>`;
@@ -594,28 +677,88 @@ function matchedKw(f, q) {
   return null;
 }
 
+function renderDropItem(f, hint='') {
+  return `<div class="fsel-drop-item" onclick="selectFactor('${f.key}')">
+    <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
+      ${hint ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">${hint}</span>` : ''}
+    </div>
+    <div class="di-meta">
+      <span class="${(f.corr_growth||0)>=0.2?'fsel-corr-g':(f.corr_growth||0)<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">成長 ${fmtCorr(f.corr_growth)}</span>
+      <span class="${(f.corr_happiness||0)>=0.2?'fsel-corr-g':(f.corr_happiness||0)<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">幸福 ${fmtCorr(f.corr_happiness)}</span>
+      <span style="color:var(--muted)">${f.category}</span>
+    </div>
+  </div>`;
+}
+
 function renderFselDropdown(){
-  const q = document.getElementById('fsel-input').value.trim().toLowerCase();
-  if(q) {
-    const terms = expandQuery(q);
-    const pool0 = searchPool(ALL_FACTORS, q);
-    console.log('[検索]', q, '→ 展開語:', terms, '/ ヒット:', pool0.length);
-    if(pool0.length > 0) console.log('top3:', pool0.slice(0,3).map(f=>f.label+'('+f._score+')'));
+  const q = document.getElementById('fsel-input').value.trim();
+  const qL = q.toLowerCase();
+
+  if(!q) {
+    document.getElementById('fsel-drop-list').innerHTML = '';
+    return;
   }
-  const pool = searchPool(ALL_FACTORS, q).slice(0, 40);
-  document.getElementById('fsel-drop-list').innerHTML = pool.map(f=>{
-    const hit = matchedKw(f, q);
-    return `<div class="fsel-drop-item" onclick="selectFactor('${f.key}')">
-      <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
-        ${hit ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">≈ ${hit}</span>` : ''}
-      </div>
-      <div class="di-meta">
-        <span class="${f.corr_growth>=0.2?'fsel-corr-g':f.corr_growth<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">成長 ${fmtCorr(f.corr_growth)}</span>
-        <span class="${f.corr_happiness>=0.2?'fsel-corr-g':f.corr_happiness<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">幸福 ${fmtCorr(f.corr_happiness)}</span>
-        <span style="color:var(--muted)">${f.category}</span>
-      </div>
-    </div>`;
-  }).join('') || '<div class="empty" style="padding:16px">該当なし</div>';
+
+  // 1) キーワード検索（辞書展開含む）
+  const kwPool = searchPool(ALL_FACTORS, qL);
+
+  // 2) セマンティック検索（ベクトル準備済みならバックグラウンドで実行）
+  if(EMB_READY && EMB_EXTRACTOR) {
+    // 動的ベクトル化モード: 非同期で結果を後から挿入
+    document.getElementById('fsel-drop-list').innerHTML =
+      renderDropItems(kwPool, qL, []) +
+      '<div id="sem-loading" style="padding:8px 14px;font-size:11px;color:var(--muted)">🔄 セマンティック検索中…</div>';
+    semanticSearch(q, 20).then(semResults => {
+      document.getElementById('sem-loading')?.remove();
+      mergeAndRender(kwPool, semResults, qL);
+    });
+  } else {
+    // embeddings.jsonモード or 未初期化: キーワードのみ
+    document.getElementById('fsel-drop-list').innerHTML = renderDropItems(kwPool, qL, []);
+  }
+}
+
+function renderDropItems(kwPool, qL, semResults) {
+  // セマンティック結果をkeyでmap化
+  const semMap = new Map(semResults.map(r => [r.key, r.score]));
+
+  // マージ: kwPool + semのみの結果
+  const seen = new Set();
+  const items = [];
+
+  // キーワードヒット（優先）
+  kwPool.slice(0,20).forEach(f => {
+    seen.add(f.key);
+    const semScore = semMap.get(f.key);
+    const hint = matchedKw(f, qL) ? `≈ ${matchedKw(f, qL)}` : '';
+    items.push({ f, hint, type: 'kw' });
+  });
+
+  // セマンティックのみのヒット
+  semResults.forEach(r => {
+    if(seen.has(r.key)) return;
+    const f = ALL_FACTORS.find(ff => ff.key === r.key);
+    if(!f) return;
+    seen.add(f.key);
+    const pct = Math.round(r.score * 100);
+    items.push({ f, hint: `〜${pct}%`, type: 'sem' });
+  });
+
+  if(!items.length) return '<div class="empty" style="padding:16px">該当なし</div>';
+
+  // セクション分け表示
+  const kwItems  = items.filter(i=>i.type==='kw');
+  const semItems = items.filter(i=>i.type==='sem');
+  let html = '';
+  if(kwItems.length)  html += kwItems.map(i=>renderDropItem(i.f, i.hint)).join('');
+  if(semItems.length) html +=
+    `<div style="padding:4px 14px 2px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px">🧠 連想（ベクトル類似）</div>` +
+    semItems.map(i=>renderDropItem(i.f, i.hint)).join('');
+  return html;
+}
+
+function mergeAndRender(kwPool, semResults, qL) {
+  document.getElementById('fsel-drop-list').innerHTML = renderDropItems(kwPool, qL, semResults);
 }
 function selectFactor(key){
   CURRENT_FACTOR_KEY = key;
@@ -1122,6 +1265,15 @@ function initAll(){
   document.getElementById('wef-mode-selected').addEventListener('click',()=>{wefMode='selected';tog('wef-mode-selected','wef-mode-all');renderWEF();});
   document.getElementById('wef-mode-all').addEventListener('click',()=>{wefMode='all';tog('wef-mode-all','wef-mode-selected');renderWEF();});
 }
+
+// moduleスコープの関数をwindowに登録
+window.toggleFselDropdown = toggleFselDropdown;
+window.renderFselDropdown = renderFselDropdown;
+window.selectFactor = selectFactor;
+window.renderWefDropdown = renderWefDropdown;
+window.setWefHighlight = setWefHighlight;
+window.clearWefHighlight = clearWefHighlight;
+window.downloadResult = window.downloadResult || function(){};
 
 loadData();
 </script>
