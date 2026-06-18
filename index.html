@@ -100,6 +100,9 @@
   .rank-table th{text-align:left;padding:7px 10px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
   .rank-table td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
   .rank-table tr:hover td{background:var(--hover)}
+  .rank-row-clickable{cursor:pointer}
+  .rank-row-clickable:hover td{background:rgba(74,158,255,.08)!important}
+  .rank-row-clickable:hover td:first-child{border-left:2px solid var(--accent2)}
   .rank-num{color:var(--muted);font-size:10px;width:28px}
   .flag-cell{font-size:16px;width:30px}
   .country-name{font-weight:500}
@@ -1006,7 +1009,7 @@ function renderFactorRank(){
   }
 
   const rHeader = topCorr ? `との r` : '成長r';
-  const renderRow = (row, i) => `<tr>
+  const renderRow = (row, i) => `<tr class="rank-row-clickable" onclick="selectFactor('${row.key}')">
     <td class="rank-num">${i+1}</td>
     <td>${row.label}${row.selected?'<span class="badge-selected">選抜</span>':''}</td>
     <td class="${corrClass(row.r)}" style="font-weight:700">${row.r!=null?fmtCorr(row.r):'—'}</td>
