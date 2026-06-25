@@ -478,6 +478,7 @@ let COUNTRIES = [];
 
 // 全体共有の選択因子（factor-hub内のサブタブで共有）
 let CURRENT_FACTOR_KEY = 'GL_Employ Engagement_2023';
+let fselSemTimer = null;  // 因子セレクター: セマンティック検索デバウンス用
 let CURRENT_SUBTAB = 'kgi';
 let scatterKgi = 'growth';
 let crSort = 'desc';
@@ -838,25 +839,32 @@ function renderFselDropdown(){
 
   if(!q) {
     document.getElementById('fsel-drop-list').innerHTML = '';
+    if(fselSemTimer) clearTimeout(fselSemTimer);
     return;
   }
 
-  // 1) キーワード検索（辞書展開含む）
+  // 1) キーワード検索（辞書展開含む）即時表示
   const kwPool = searchPool(ALL_FACTORS, qL);
+  document.getElementById('fsel-drop-list').innerHTML = renderDropItems(kwPool, qL, []);
 
-  // 2) セマンティック検索（ベクトル準備済みならバックグラウンドで実行）
+  // 2) セマンティック検索はデバウンス（連続入力中は走らせない）
   if(EMB_READY && EMB_EXTRACTOR) {
-    // 動的ベクトル化モード: 非同期で結果を後から挿入
-    document.getElementById('fsel-drop-list').innerHTML =
-      renderDropItems(kwPool, qL, []) +
-      '<div id="sem-loading" style="padding:8px 14px;font-size:11px;color:var(--muted)">🔄 セマンティック検索中…</div>';
-    semanticSearch(q, 20).then(semResults => {
-      document.getElementById('sem-loading')?.remove();
-      mergeAndRender(kwPool, semResults, qL);
-    });
-  } else {
-    // embeddings.jsonモード or 未初期化: キーワードのみ
-    document.getElementById('fsel-drop-list').innerHTML = renderDropItems(kwPool, qL, []);
+    if(fselSemTimer) clearTimeout(fselSemTimer);
+    const myQ = q, myQL = qL, myKwPool = kwPool;
+    fselSemTimer = setTimeout(() => {
+      // 入力が変わっていたら（古い検索なら）何もしない
+      if(document.getElementById('fsel-input').value.trim() !== myQ) return;
+      const listEl = document.getElementById('fsel-drop-list');
+      if(listEl && !document.getElementById('sem-loading')) {
+        listEl.insertAdjacentHTML('beforeend',
+          '<div id="sem-loading" style="padding:8px 14px;font-size:11px;color:var(--muted)">🔄 セマンティック検索中…</div>');
+      }
+      semanticSearch(myQ, 20).then(semResults => {
+        if(document.getElementById('fsel-input').value.trim() !== myQ) return; // 結果が来た時点でクエリが変わっていたら無視
+        document.getElementById('sem-loading')?.remove();
+        mergeAndRender(myKwPool, semResults, myQL);
+      });
+    }, 350);  // 350ms 入力が止まったら検索開始
   }
 }
 
