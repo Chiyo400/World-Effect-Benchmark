@@ -818,9 +818,11 @@ function matchedKw(f, q) {
   return null;
 }
 
+function escKey(k) { return k.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
 function renderDropItem(f, hint='') {
   const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-  return `<div class="fsel-drop-item" onclick="selectFactor('${f.key}')">
+  return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="selectFactor(this.dataset.key)">
     <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
       ${hint ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">${hint}</span>` : ''}
     </div>
@@ -1037,7 +1039,7 @@ function renderFactorRank(){
   }
 
   const rHeader = topCorr ? `との r` : '成長r';
-  const renderRow = (row, i) => `<tr class="rank-row-clickable" onclick="selectFactor('${row.key}')">
+  const renderRow = (row, i) => `<tr class="rank-row-clickable" data-key="${escKey(row.key)}" onclick="selectFactor(this.dataset.key)">
     <td class="rank-num">${i+1}</td>
     <td>${row.label}${row.selected?'<span class="badge-selected">選抜</span>':''}</td>
     <td class="${corrClass(row.r)}" style="font-weight:700">${row.r!=null?fmtCorr(row.r):'—'}</td>
@@ -1278,7 +1280,7 @@ function renderWefDropdown(){
   document.getElementById('wef-drop-list').innerHTML = pool.map(f=>{
     const hit = matchedKw(f, q);
     const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-    return `<div class="fsel-drop-item" onclick="setWefHighlight('${f.key}','${f.label.replace(/'/g,"\\'")}')">
+    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="setWefHighlight(this.dataset.key, DATA.factors[this.dataset.key].label)">
       <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
         ${hit ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">≈ ${hit}</span>` : ''}
       </div>
@@ -1304,7 +1306,7 @@ function renderScatterYDropdown(){
   document.getElementById('scatter-yfactor-droplist').innerHTML = pool.map(f=>{
     const hit = matchedKw(f, q);
     const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-    return `<div class="fsel-drop-item" onclick="selectScatterYFactor('${f.key}','${f.label.replace(/'/g,"\\'")}')">
+    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="selectScatterYFactor(this.dataset.key, DATA.factors[this.dataset.key].label)">
       <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
         ${hit ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">≈ ${hit}</span>` : ''}
       </div>
