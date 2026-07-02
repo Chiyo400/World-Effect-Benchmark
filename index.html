@@ -919,22 +919,21 @@ function selectFactor(key){
   renderCurrentSubtab();
 }
 
-// 外クリックでドロップダウン閉じる
-document.addEventListener('click', e=>{
+// 外クリックでドロップダウン閉じる（mousedownで判定してclickと競合しない）
+document.addEventListener('mousedown', e=>{
   const bar = document.getElementById('factor-selector-bar');
   const fselDd = document.getElementById('fsel-dropdown');
   if(!bar.contains(e.target) && !fselDd.contains(e.target))
     fselDd.classList.remove('open');
 
-  const wefWrap = document.querySelector('.wef-search-wrap');
   const wefDd = document.getElementById('wef-dropdown');
-  if(wefWrap && !wefWrap.contains(e.target) && !wefDd.contains(e.target))
+  const wefSearch = document.getElementById('wef-search');
+  if(wefSearch && wefDd && !wefSearch.contains(e.target) && !wefDd.contains(e.target))
     wefDd.classList.remove('open');
 
-  const scatterWrap = document.getElementById('scatter-yfactor-group');
   const scatterDd = document.getElementById('scatter-yfactor-dropdown');
-  if(scatterWrap && scatterDd &&
-     !scatterWrap.contains(e.target) && !scatterDd.contains(e.target))
+  const scatterSearch = document.getElementById('scatter-yfactor-search');
+  if(scatterSearch && scatterDd && !scatterSearch.contains(e.target) && !scatterDd.contains(e.target))
     scatterDd.classList.remove('open');
 });
 
@@ -1505,7 +1504,7 @@ function initAll(){
     document.getElementById('scatter-yfactor-group').style.display='flex';
     if(scatterYFactorKey) renderScatter();
   });
-  document.addEventListener('click', e=>{
+  document.addEventListener('mousedown', e=>{
     const wrap = document.querySelector('#scatter-yfactor-group .wef-search-wrap');
     const dd = document.getElementById('scatter-yfactor-dropdown');
     if(wrap && dd && !wrap.contains(e.target) && !dd.contains(e.target))
