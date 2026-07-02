@@ -822,7 +822,7 @@ function escKey(k) { return k.replace(/&/g,'&amp;').replace(/"/g,'&quot;').repla
 
 function renderDropItem(f, hint='') {
   const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-  return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="selectFactor(this.closest('[data-key]').dataset.key)">
+  return `<div class="fsel-drop-item" data-key="${escKey(f.key)}">
     <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
       ${hint ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">${hint}</span>` : ''}
     </div>
@@ -1297,7 +1297,7 @@ function renderWefDropdown(){
   document.getElementById('wef-drop-list').innerHTML = pool.map(f=>{
     const hit = matchedKw(f, q);
     const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="setWefHighlight(this.closest('[data-key]').dataset.key, DATA.factors[this.closest('[data-key]').dataset.key].label)">
+    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}">
       <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
         ${hit ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">≈ ${hit}</span>` : ''}
       </div>
@@ -1317,7 +1317,6 @@ function renderScatterYDropdown(){
   const dd = document.getElementById('scatter-yfactor-dropdown');
   if(!q){ dd.classList.remove('open'); return; }
 
-  // input欄の位置を取得してfixed座標をセット
   const input = document.getElementById('scatter-yfactor-search');
   const rect = input.getBoundingClientRect();
   dd.style.left = rect.left + 'px';
@@ -1327,10 +1326,11 @@ function renderScatterYDropdown(){
   const pool = searchPool(
     ALL_FACTORS.filter(f=>f.key!==CURRENT_FACTOR_KEY), q
   ).slice(0, 30);
+
   document.getElementById('scatter-yfactor-droplist').innerHTML = pool.map(f=>{
     const hit = matchedKw(f, q);
     const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
-    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}" onclick="selectScatterYFactor(this.closest('[data-key]').dataset.key, DATA.factors[this.closest('[data-key]').dataset.key].label)">
+    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}">
       <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}
         ${hit ? `<span style="font-size:10px;color:#e8c840;margin-left:6px">≈ ${hit}</span>` : ''}
       </div>
@@ -1341,6 +1341,21 @@ function renderScatterYDropdown(){
       </div>
     </div>`;
   }).join('') || '<div class="empty" style="padding:12px">該当なし</div>';
+
+  // イベントデリゲーション：droplist全体にリスナーをセット
+  const droplist = document.getElementById('scatter-yfactor-droplist');
+  droplist.onclick = e => {
+    const item = e.target.closest('[data-key]');
+    if(!item) return;
+    const key = item.dataset.key;
+    const f = DATA.factors[key];
+    if(!f) return;
+    scatterYFactorKey = key;
+    document.getElementById('scatter-yfactor-search').value = f.label;
+    dd.classList.remove('open');
+    renderScatter();
+  };
+
   dd.classList.add('open');
 }
 
@@ -1475,6 +1490,23 @@ function renderWEF(){
 // INIT ALL
 // ============================================================
 function initAll(){
+  // ===== ドロップダウン候補クリックのデリゲーション =====
+  // fsel（X軸因子選択）
+  document.getElementById('fsel-drop-list').addEventListener('click', e=>{
+    const item = e.target.closest('[data-key]');
+    if(!item) return;
+    selectFactor(item.dataset.key);
+  });
+  // wef（ハイライト因子選択）
+  document.getElementById('wef-drop-list').addEventListener('click', e=>{
+    const item = e.target.closest('[data-key]');
+    if(!item) return;
+    const key = item.dataset.key;
+    const f = DATA.factors[key];
+    if(!f) return;
+    setWefHighlight(key, f.label);
+  });
+
   // サブタブ
   document.querySelectorAll('.sub-tab').forEach(t=>
     t.addEventListener('click',()=>showSubtab(t.dataset.subtab)));
