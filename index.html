@@ -922,9 +922,20 @@ function selectFactor(key){
 // 外クリックでドロップダウン閉じる
 document.addEventListener('click', e=>{
   const bar = document.getElementById('factor-selector-bar');
-  if(!bar.contains(e.target)) document.getElementById('fsel-dropdown').classList.remove('open');
+  const fselDd = document.getElementById('fsel-dropdown');
+  if(!bar.contains(e.target) && !fselDd.contains(e.target))
+    fselDd.classList.remove('open');
+
   const wefWrap = document.querySelector('.wef-search-wrap');
-  if(wefWrap && !wefWrap.contains(e.target)) document.getElementById('wef-dropdown').classList.remove('open');
+  const wefDd = document.getElementById('wef-dropdown');
+  if(wefWrap && !wefWrap.contains(e.target) && !wefDd.contains(e.target))
+    wefDd.classList.remove('open');
+
+  const scatterWrap = document.getElementById('scatter-yfactor-group');
+  const scatterDd = document.getElementById('scatter-yfactor-dropdown');
+  if(scatterWrap && scatterDd &&
+     !scatterWrap.contains(e.target) && !scatterDd.contains(e.target))
+    scatterDd.classList.remove('open');
 });
 
 // ============================================================
@@ -1496,7 +1507,9 @@ function initAll(){
   });
   document.addEventListener('click', e=>{
     const wrap = document.querySelector('#scatter-yfactor-group .wef-search-wrap');
-    if(wrap && !wrap.contains(e.target)) document.getElementById('scatter-yfactor-dropdown')?.classList.remove('open');
+    const dd = document.getElementById('scatter-yfactor-dropdown');
+    if(wrap && dd && !wrap.contains(e.target) && !dd.contains(e.target))
+      dd.classList.remove('open');
   });
 
   // 国別スコアランキングソート
