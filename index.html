@@ -143,7 +143,7 @@
   .wef-search-wrap{position:relative;max-width:320px;flex:1}
   .wef-search-wrap input{width:100%;padding-left:32px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:7px 11px 7px 32px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none}
   .wef-search-wrap input:focus{border-color:var(--accent2)}
-  #wef-dropdown, #scatter-yfactor-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:260px;overflow-y:auto;display:none;margin-top:4px}
+  #wef-dropdown, #scatter-yfactor-dropdown{position:fixed;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:320px;overflow-y:auto;display:none;margin-top:4px;min-width:320px}
   #wef-dropdown.open, #scatter-yfactor-dropdown.open{display:block}
 
 /* ============================================================
@@ -1274,6 +1274,13 @@ function renderWefDropdown(){
   const q = document.getElementById('wef-search').value.trim().toLowerCase();
   const dd = document.getElementById('wef-dropdown');
   if(!q){ dd.classList.remove('open'); return; }
+
+  const input = document.getElementById('wef-search');
+  const rect = input.getBoundingClientRect();
+  dd.style.left = rect.left + 'px';
+  dd.style.top  = (rect.bottom + 4) + 'px';
+  dd.style.width = Math.max(rect.width, 320) + 'px';
+
   const pool = searchPool(
     ALL_FACTORS.filter(f=>f.corr_growth!=null&&f.corr_happiness!=null), q
   ).slice(0, 30);
@@ -1299,7 +1306,14 @@ function renderScatterYDropdown(){
   const q = document.getElementById('scatter-yfactor-search').value.trim().toLowerCase();
   const dd = document.getElementById('scatter-yfactor-dropdown');
   if(!q){ dd.classList.remove('open'); return; }
-  // 横軸（現在選択中の因子）は除外
+
+  // input欄の位置を取得してfixed座標をセット
+  const input = document.getElementById('scatter-yfactor-search');
+  const rect = input.getBoundingClientRect();
+  dd.style.left = rect.left + 'px';
+  dd.style.top  = (rect.bottom + 4) + 'px';
+  dd.style.width = Math.max(rect.width, 320) + 'px';
+
   const pool = searchPool(
     ALL_FACTORS.filter(f=>f.key!==CURRENT_FACTOR_KEY), q
   ).slice(0, 30);
