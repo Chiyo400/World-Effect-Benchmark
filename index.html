@@ -919,22 +919,19 @@ function selectFactor(key){
   renderCurrentSubtab();
 }
 
-// 外クリックでドロップダウン閉じる（mousedownで判定してclickと競合しない）
-document.addEventListener('mousedown', e=>{
-  const bar = document.getElementById('factor-selector-bar');
-  const fselDd = document.getElementById('fsel-dropdown');
-  if(!bar.contains(e.target) && !fselDd.contains(e.target))
-    fselDd.classList.remove('open');
-
-  const wefDd = document.getElementById('wef-dropdown');
-  const wefSearch = document.getElementById('wef-search');
-  if(wefSearch && wefDd && !wefSearch.contains(e.target) && !wefDd.contains(e.target))
-    wefDd.classList.remove('open');
-
-  const scatterDd = document.getElementById('scatter-yfactor-dropdown');
-  const scatterSearch = document.getElementById('scatter-yfactor-search');
-  if(scatterSearch && scatterDd && !scatterSearch.contains(e.target) && !scatterDd.contains(e.target))
-    scatterDd.classList.remove('open');
+// ドロップダウンを閉じる共通関数
+function closeAllDropdowns(except) {
+  if(except !== 'fsel') document.getElementById('fsel-dropdown')?.classList.remove('open');
+  if(except !== 'wef')  document.getElementById('wef-dropdown')?.classList.remove('open');
+  if(except !== 'scatter-y') document.getElementById('scatter-yfactor-dropdown')?.classList.remove('open');
+}
+// Escキーで全閉じ
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAllDropdowns(); });
+// 入力欄からフォーカスが外れたら少し待って閉じる（選択クリックを妨げないよう遅延）
+['fsel-input','wef-search','scatter-yfactor-search'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('blur', ()=>{
+    setTimeout(()=>closeAllDropdowns(), 200);
+  });
 });
 
 // ============================================================
@@ -1123,8 +1120,9 @@ function renderScatter(){
   }
 
   const wrap=document.getElementById('scatter-wrap');
+  const isMobile = window.innerWidth <= 768;
   const W=Math.max(wrap.clientWidth||640,500), H=400;
-  const M={top:28,right:36,bottom:56,left:64};
+  const M={top:28,right: isMobile ? 12 : 36,bottom:56,left:64};
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
   const xE=d3.extent(pts,d=>d.x), yE=d3.extent(pts,d=>d.y);
   const xP=(xE[1]-xE[0])*0.08, yP=(yE[1]-yE[0])*0.08;
@@ -1167,7 +1165,12 @@ function renderScatter(){
     .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
   g.append('text').attr('x',iW/2).attr('y',iH+46).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(f.label);
   g.append('text').attr('transform','rotate(-90)').attr('x',-iH/2).attr('y',-50).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(yLabel);
-  g.append('text').attr('x',iW-4).attr('y',14).attr('text-anchor','end').attr('fill',corrColor(corrVal)).attr('font-size','12px').attr('font-weight','700').text(`r = ${fmtCorr(corrVal)}`);
+  g.append('text')
+    .attr('x', isMobile ? 4 : iW-4)
+    .attr('y', 14)
+    .attr('text-anchor', isMobile ? 'start' : 'end')
+    .attr('fill',corrColor(corrVal)).attr('font-size','12px').attr('font-weight','700')
+    .text(`r = ${fmtCorr(corrVal)}`);
 }
 
 // ============================================================
@@ -1536,12 +1539,7 @@ function initAll(){
     document.getElementById('scatter-yfactor-group').style.display='flex';
     if(scatterYFactorKey) renderScatter();
   });
-  document.addEventListener('mousedown', e=>{
-    const wrap = document.querySelector('#scatter-yfactor-group .wef-search-wrap');
-    const dd = document.getElementById('scatter-yfactor-dropdown');
-    if(wrap && dd && !wrap.contains(e.target) && !dd.contains(e.target))
-      dd.classList.remove('open');
-  });
+
 
   // 国別スコアランキングソート
   document.getElementById('cr-sort-desc').addEventListener('click',()=>{crSort='desc';tog('cr-sort-desc','cr-sort-asc');renderCountryRank();});
