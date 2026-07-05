@@ -1145,6 +1145,13 @@ function renderScatter(){
   }
 
   const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+
+  // プロットエリア背景と枠線（右端・上端）
+  g.append('rect').attr('x',0).attr('y',0).attr('width',iW).attr('height',iH)
+    .attr('fill','rgba(255,255,255,0.03)').attr('rx',2);
+  g.append('line').attr('x1',iW).attr('x2',iW).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)').attr('stroke-width',1);
+  g.append('line').attr('x1',0).attr('x2',iW).attr('y1',0).attr('y2',0).attr('stroke','var(--border)').attr('stroke-width',1);
+
   g.selectAll('.gx').data(xS.ticks(isMobile?4:6)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
   g.selectAll('.gy').data(yS.ticks(isMobile?4:6)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
   const mX=d3.mean(pts,d=>d.x),mY=d3.mean(pts,d=>d.y);
