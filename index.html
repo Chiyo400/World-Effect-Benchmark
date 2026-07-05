@@ -232,7 +232,7 @@
 
   /* 散布図・WEF: 横幅いっぱい */
   #scatter-wrap, #view-world-effect .chart-wrap { overflow-x: auto; }
-  #scatter-svg, #wef-svg { min-width: 500px; }
+  #scatter-svg, #wef-svg { max-width: 100%; }
 
   /* ドロップダウン */
   #fsel-dropdown, #wef-dropdown, #scatter-yfactor-dropdown { position: fixed; left: 14px; right: 14px; top: auto; max-height: 55vh; }
@@ -1121,14 +1121,21 @@ function renderScatter(){
 
   const wrap=document.getElementById('scatter-wrap');
   const isMobile = window.innerWidth <= 768;
-  const W=Math.max(wrap.clientWidth||640,500), H=400;
-  const M={top:28,right: isMobile ? 12 : 36,bottom:56,left:64};
+  // スマホではwrapの実際の幅を使う（min-widthを無視）
+  const W = isMobile ? Math.max(wrap.offsetWidth, 300) : Math.max(wrap.clientWidth||640, 500);
+  const H = isMobile ? 340 : 400;
+  // スマホはmarginを詰める（Y軸ラベルを省略）
+  const M = isMobile
+    ? {top:28, right:12, bottom:50, left:44}
+    : {top:28, right:36, bottom:56, left:64};
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
   const xE=d3.extent(pts,d=>d.x), yE=d3.extent(pts,d=>d.y);
   const xP=(xE[1]-xE[0])*0.08, yP=(yE[1]-yE[0])*0.08;
   const xS=d3.scaleLinear().domain([xE[0]-xP,xE[1]+xP]).range([0,iW]);
   const yS=d3.scaleLinear().domain([yE[0]-yP,yE[1]+yP]).range([iH,0]);
-  const svg=d3.select('#scatter-svg').attr('width',W).attr('height',H).attr('style','display:block');
+  const svg=d3.select('#scatter-svg')
+    .attr('width', W).attr('height', H)
+    .attr('style','display:block;max-width:100%');
   svg.selectAll('*').remove();
 
   if(pts.length === 0) {
@@ -1138,8 +1145,8 @@ function renderScatter(){
   }
 
   const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
-  g.selectAll('.gx').data(xS.ticks(6)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
-  g.selectAll('.gy').data(yS.ticks(6)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
+  g.selectAll('.gx').data(xS.ticks(isMobile?4:6)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
+  g.selectAll('.gy').data(yS.ticks(isMobile?4:6)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
   const mX=d3.mean(pts,d=>d.x),mY=d3.mean(pts,d=>d.y);
   const num=d3.sum(pts,d=>(d.x-mX)*(d.y-mY)),den=d3.sum(pts,d=>(d.x-mX)**2);
   if(den!==0){const sl=num/den,ic=mY-sl*mX;
@@ -1159,12 +1166,22 @@ function renderScatter(){
     }).on('mouseleave',()=>tooltip.classList.add('tooltip-hidden'));
   pts.filter(d=>d.id==='JPN').forEach(d=>{
     g.append('text').attr('x',xS(d.x)+10).attr('y',yS(d.y)+4).text(`${FLAGS[d.id]} JPN`).attr('fill','var(--accent)').attr('font-size','11px');});
-  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).ticks(6))
-    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
-  g.append('g').call(d3.axisLeft(yS).ticks(6))
-    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size','10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
-  g.append('text').attr('x',iW/2).attr('y',iH+46).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(f.label);
-  g.append('text').attr('transform','rotate(-90)').attr('x',-iH/2).attr('y',-50).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(yLabel);
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).ticks(isMobile?4:6))
+    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size',isMobile?'9px':'10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
+  g.append('g').call(d3.axisLeft(yS).ticks(isMobile?4:6))
+    .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size',isMobile?'9px':'10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
+
+  // X軸ラベル（因子名）
+  g.append('text').attr('x',iW/2).attr('y',iH+(isMobile?38:46)).attr('text-anchor','middle')
+    .attr('fill','var(--muted)').attr('font-size',isMobile?'10px':'11px').text(f.label);
+
+  // Y軸ラベル（PCのみ）
+  if(!isMobile){
+    g.append('text').attr('transform','rotate(-90)').attr('x',-iH/2).attr('y',-50)
+      .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(yLabel);
+  }
+
+  // r値ラベル（スマホは左上、PCは右上）
   g.append('text')
     .attr('x', isMobile ? 4 : iW-4)
     .attr('y', 14)
