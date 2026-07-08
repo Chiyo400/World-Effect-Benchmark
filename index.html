@@ -247,6 +247,89 @@
   .rank-table { min-width: 400px; }
   .compare-row { grid-template-columns: 1fr 44px 44px 50px; }
 }
+
+  /* ============================================================
+     TUTORIAL
+     ============================================================ */
+  /* モーダルオーバーレイ */
+  #tutorial-modal {
+    position:fixed;inset:0;z-index:1000;
+    background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;
+  }
+  #tutorial-modal.hidden{display:none}
+  .tut-box {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;width:100%;max-width:520px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .tut-header {
+    padding:20px 24px 0;
+  }
+  .tut-step-indicator {
+    display:flex;gap:6px;margin-bottom:16px;
+  }
+  .tut-dot {
+    width:6px;height:6px;border-radius:50%;
+    background:var(--border);transition:.2s;
+  }
+  .tut-dot.active{background:var(--accent)}
+  .tut-slide{display:none;padding:0 24px}
+  .tut-slide.active{display:block}
+  .tut-icon{font-size:36px;margin-bottom:12px}
+  .tut-title{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:8px}
+  .tut-body{font-size:13px;color:var(--muted);line-height:1.8}
+  .tut-body strong{color:var(--text)}
+  .tut-body .tut-tag {
+    display:inline-block;background:rgba(74,158,255,.15);color:var(--accent2);
+    border:1px solid rgba(74,158,255,.3);padding:1px 8px;border-radius:4px;
+    font-size:11px;margin:0 2px;
+  }
+  .tut-footer {
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px 20px;margin-top:16px;
+    border-top:1px solid var(--border);
+  }
+  .tut-skip{font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:inherit}
+  .tut-skip:hover{color:var(--text)}
+  .tut-nav{display:flex;gap:8px}
+
+  /* ウォークスルー（ハイライト型） */
+  #walkthrough-overlay{
+    position:fixed;inset:0;z-index:900;pointer-events:none;
+  }
+  #walkthrough-overlay.hidden{display:none}
+  .wt-highlight{
+    position:fixed;z-index:901;
+    box-shadow:0 0 0 4px var(--accent),0 0 0 9999px rgba(0,0,0,.6);
+    border-radius:6px;pointer-events:none;
+    transition:all .3s ease;
+  }
+  .wt-tooltip{
+    position:fixed;z-index:902;
+    background:var(--surface);border:1px solid var(--accent);
+    border-radius:8px;padding:14px 18px;
+    max-width:280px;min-width:220px;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);
+    pointer-events:all;
+  }
+  .wt-tooltip .wt-t-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px}
+  .wt-tooltip .wt-t-body{font-size:12px;color:var(--muted);line-height:1.7}
+  .wt-tooltip .wt-t-nav{display:flex;gap:6px;margin-top:12px;justify-content:flex-end}
+  .wt-tooltip .wt-t-count{font-size:11px;color:var(--muted);margin-top:12px;text-align:center}
+
+  /* 使い方ボタン */
+  #help-btn {
+    display:flex;align-items:center;gap:7px;
+    width:100%;padding:9px 16px;
+    background:rgba(232,200,64,.08);border:1px solid rgba(232,200,64,.2);
+    border-radius:6px;cursor:pointer;color:var(--accent);
+    font-size:12px;font-weight:600;font-family:inherit;
+    margin-top:10px;transition:var(--tr);
+  }
+  #help-btn:hover{background:rgba(232,200,64,.15)}
 </style>
 <!-- Transformers.js（埋め込みベクトル検索用） -->
 <script type="importmap">
@@ -254,6 +337,94 @@
 </script>
 </head>
 <body>
+
+  <!-- ===== チュートリアルモーダル ===== -->
+  <div id="tutorial-modal" class="hidden">
+    <div class="tut-box">
+      <div class="tut-header">
+        <div class="tut-step-indicator" id="tut-dots"></div>
+      </div>
+
+      <div class="tut-slide active" data-slide="0">
+        <div class="tut-icon">🌍</div>
+        <div class="tut-title">World Effect Evaluator へようこそ</div>
+        <div class="tut-body">
+          このツールは、<strong>OECD加盟37カ国・1200以上の社会指標</strong>を使って、<br>
+          「何が国の成長・幸福につながるか」を探索できるデータベースです。<br><br>
+          3分でざっくり使い方をご紹介します。
+        </div>
+      </div>
+
+      <div class="tut-slide" data-slide="1">
+        <div class="tut-icon">🔬</div>
+        <div class="tut-title">まず「因子を選ぶ」</div>
+        <div class="tut-body">
+          サイドバーの <strong>「因子を選ぶ」</strong> が基本画面です。<br><br>
+          上部の検索バーに気になるキーワードを入力して因子を選択してください。<br>
+          <span class="tut-tag">社員の熱意</span><span class="tut-tag">勤続年数</span><span class="tut-tag">自殺率</span> など日本語で検索できます。<br><br>
+          あいまい検索にも対応しています（例：「ハッピー」→幸福度）。
+        </div>
+      </div>
+
+      <div class="tut-slide" data-slide="2">
+        <div class="tut-icon">📊</div>
+        <div class="tut-title">4つのタブで深掘りする</div>
+        <div class="tut-body">
+          因子を選ぶと4つのタブで分析できます：<br><br>
+          <span class="tut-tag">成功相関</span> GDP成長・幸福との相関を確認<br>
+          <span class="tut-tag">他因子との相関</span> 似た動きをする因子を発見<br>
+          <span class="tut-tag">ベンチマークMAP</span> 37カ国での散布図を確認<br>
+          <span class="tut-tag">国の特徴</span> 各国のスコア順位を確認
+        </div>
+      </div>
+
+      <div class="tut-slide" data-slide="3">
+        <div class="tut-icon">🌏</div>
+        <div class="tut-title">国を比べる</div>
+        <div class="tut-body">
+          サイドバーの <strong>「国プロフィール」</strong> では、<br>
+          選んだ国のトップ・ワースト因子を一覧できます。<br><br>
+          <strong>「2国比較」</strong> では、2カ国の全因子を並べて差分を確認できます。<br><br>
+          日本（JPN）はどの画面でも<span style="color:var(--accent)">●黄色</span>でハイライトされています。
+        </div>
+      </div>
+
+      <div class="tut-slide" data-slide="4">
+        <div class="tut-icon">🗺️</div>
+        <div class="tut-title">全体を俯瞰する</div>
+        <div class="tut-body">
+          <strong>「World Effect Map」</strong> では、<br>
+          1200以上の因子を「成長への効果 × 幸福への効果」の2軸でマッピングします。<br><br>
+          右上の <span style="color:var(--pos)">SUCCESS</span> 象限にある因子が、<br>
+          成長にも幸福にも有効な「両利き因子」です。
+        </div>
+      </div>
+
+      <div class="tut-footer">
+        <button class="tut-skip" onclick="closeTutorial()">スキップ</button>
+        <div class="tut-nav">
+          <button class="btn btn-ghost" id="tut-prev" onclick="tutMove(-1)">← 前へ</button>
+          <button class="btn btn-primary" id="tut-next" onclick="tutMove(1)">次へ →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ウォークスルーオーバーレイ ===== -->
+  <div id="walkthrough-overlay" class="hidden">
+    <div class="wt-highlight" id="wt-highlight"></div>
+    <div class="wt-tooltip" id="wt-tooltip">
+      <div class="wt-t-title" id="wt-title"></div>
+      <div class="wt-t-body" id="wt-body"></div>
+      <div class="wt-t-count" id="wt-count"></div>
+      <div class="wt-t-nav">
+        <button class="btn btn-ghost" onclick="wtMove(-1)">← 前</button>
+        <button class="btn btn-ghost" onclick="closeTutorial()">終了</button>
+        <button class="btn btn-primary" onclick="wtMove(1)">次 →</button>
+      </div>
+    </div>
+  </div>
+
 <div id="app">
   <!-- Sidebar -->
   <div id="sidebar">
@@ -276,6 +447,7 @@
       <span style="color:var(--muted);font-size:9px;line-height:1.5;display:block;margin-top:6px">
         ⚠ 当ツールはAIをベースに作成しており、数値等に誤りが含まれる場合があります
       </span>
+      <button id="help-btn" onclick="startWalkthrough()">❓ 使い方ガイド</button>
     </div>
   </div>
 
@@ -290,7 +462,7 @@
       </div>
       <h2 id="view-title">因子を選ぶ</h2>
       <div class="badge" id="topbar-badge">1180因子</div>
-      <div class="badge" id="emb-status" style="color:var(--muted)">🔄 ベクトル初期化中…</div>
+      <div class="badge" id="emb-status" style="display:none"></div>
     </div>
 
     <!-- 共有因子セレクターバー（因子HUBのサブページで表示） -->
@@ -601,6 +773,7 @@ async function loadData() {
 
     document.getElementById('loading').style.display='none';
     initAll();
+    initTutorial();
     showView('factor-hub');
     // 埋め込み初期化（バックグラウンド）
     initEmbeddings();
@@ -1625,7 +1798,133 @@ window.selectScatterYFactor = selectScatterYFactor;
 window.clearWefHighlight = clearWefHighlight;
 window.toggleSidebar = toggleSidebar;
 window.closeSidebar = closeSidebar;
+
+// ============================================================
+// TUTORIAL
+// ============================================================
+const TUT_STORAGE_KEY = 'wee_tutorial_done_v1';
+let tutCurrent = 0;
+const TUT_TOTAL = 5;
+
+function initTutorial() {
+  // ドット生成
+  const dotsEl = document.getElementById('tut-dots');
+  dotsEl.innerHTML = Array.from({length: TUT_TOTAL}, (_,i) =>
+    `<div class="tut-dot ${i===0?'active':''}"></div>`).join('');
+  // 初回のみ自動表示
+  if(!localStorage.getItem(TUT_STORAGE_KEY)) {
+    setTimeout(()=>openTutorial(), 800);
+  }
+}
+
+function openTutorial() {
+  tutCurrent = 0;
+  updateTutSlide();
+  document.getElementById('tutorial-modal').classList.remove('hidden');
+}
+
+function closeTutorial() {
+  document.getElementById('tutorial-modal').classList.add('hidden');
+  document.getElementById('walkthrough-overlay').classList.add('hidden');
+  localStorage.setItem(TUT_STORAGE_KEY, '1');
+}
+
+function updateTutSlide() {
+  document.querySelectorAll('.tut-slide').forEach((s,i) =>
+    s.classList.toggle('active', i===tutCurrent));
+  document.querySelectorAll('.tut-dot').forEach((d,i) =>
+    d.classList.toggle('active', i===tutCurrent));
+  document.getElementById('tut-prev').style.opacity = tutCurrent===0 ? '0.3' : '1';
+  const nextBtn = document.getElementById('tut-next');
+  nextBtn.textContent = tutCurrent===TUT_TOTAL-1 ? '✅ はじめる' : '次へ →';
+}
+
+function tutMove(dir) {
+  const next = tutCurrent + dir;
+  if(next < 0) return;
+  if(next >= TUT_TOTAL) { closeTutorial(); return; }
+  tutCurrent = next;
+  updateTutSlide();
+}
+
+// ウォークスルー
+const WT_STEPS = [
+  { selector: '#factor-selector-bar',
+    title: '① 因子を選ぶ',
+    body: 'ここに因子名を入力して検索します。「ハッピー」「労働」など日本語でOKです。' },
+  { selector: '.sub-tabs',
+    title: '② 4つのタブで分析',
+    body: '「成功相関」「他因子との相関」「ベンチマークMAP」「国の特徴」の4つの切り口で因子を深掘りします。' },
+  { selector: '[data-view="country-profile"]',
+    title: '③ 国プロフィール',
+    body: '国を選ぶとその国のトップ・ワースト因子を偏差値付きで一覧できます。' },
+  { selector: '[data-view="country-compare"]',
+    title: '④ 2国比較',
+    body: '2カ国を選んで全因子の偏差値を並べて比較できます。' },
+  { selector: '[data-view="world-effect"]',
+    title: '⑤ World Effect Map',
+    body: '全因子を「成長効果 × 幸福効果」の2軸でマッピング。右上のSUCCESS象限が最重要因子群です。' },
+];
+let wtCurrent = 0;
+
+function startWalkthrough() {
+  if(window.innerWidth <= 768) closeSidebar();
+  // factor-hubが選ばれていることを確認
+  showView('factor-hub');
+  wtCurrent = 0;
+  document.getElementById('tutorial-modal').classList.add('hidden');
+  document.getElementById('walkthrough-overlay').classList.remove('hidden');
+  setTimeout(()=>renderWtStep(), 100);
+}
+
+function renderWtStep() {
+  const step = WT_STEPS[wtCurrent];
+  const target = document.querySelector(step.selector);
+  const hl = document.getElementById('wt-highlight');
+  const tt = document.getElementById('wt-tooltip');
+
+  document.getElementById('wt-title').textContent = step.title;
+  document.getElementById('wt-body').textContent = step.body;
+  document.getElementById('wt-count').textContent = `${wtCurrent+1} / ${WT_STEPS.length}`;
+
+  if(target) {
+    const r = target.getBoundingClientRect();
+    const pad = 6;
+    hl.style.left   = (r.left - pad) + 'px';
+    hl.style.top    = (r.top - pad) + 'px';
+    hl.style.width  = (r.width + pad*2) + 'px';
+    hl.style.height = (r.height + pad*2) + 'px';
+
+    // ツールチップの位置（下 or 上）
+    const spaceBelow = window.innerHeight - r.bottom;
+    if(spaceBelow > 160) {
+      tt.style.top  = (r.bottom + 16) + 'px';
+    } else {
+      tt.style.top  = (r.top - 160) + 'px';
+    }
+    const ttLeft = Math.min(r.left, window.innerWidth - 300);
+    tt.style.left = Math.max(8, ttLeft) + 'px';
+  }
+}
+
+function wtMove(dir) {
+  const next = wtCurrent + dir;
+  if(next < 0) return;
+  if(next >= WT_STEPS.length) { closeTutorial(); return; }
+  wtCurrent = next;
+  // 国プロフィール・比較はそのビューに切り替え
+  if(WT_STEPS[next].selector === '[data-view="country-profile"]') showView('country-profile');
+  else if(WT_STEPS[next].selector === '[data-view="country-compare"]') showView('country-compare');
+  else if(WT_STEPS[next].selector === '[data-view="world-effect"]') { showView('world-effect'); setTimeout(renderWEF,100); }
+  else showView('factor-hub');
+  setTimeout(renderWtStep, 150);
+}
 window.downloadResult = window.downloadResult || function(){};
+window.openTutorial = openTutorial;
+window.closeTutorial = closeTutorial;
+window.tutMove = tutMove;
+window.startWalkthrough = startWalkthrough;
+window.wtMove = wtMove;
 
 loadData();
 </script>
