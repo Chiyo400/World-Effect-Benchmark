@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社会戦略フォーラム — データ探索</title>
+<title>World Effect Benchmark</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
   :root {
@@ -273,7 +273,7 @@
   }
   .tut-dot {
     width:6px;height:6px;border-radius:50%;
-    background:var(--border);transition:.2s;
+    background:rgba(255,255,255,.25);transition:.2s;
   }
   .tut-dot.active{background:var(--accent)}
   .tut-slide{display:none;padding:0 24px}
@@ -347,17 +347,17 @@
 
       <div class="tut-slide active" data-slide="0">
         <div class="tut-icon">🌍</div>
-        <div class="tut-title">World Effect Evaluator へようこそ</div>
+        <div class="tut-title">World Effect Benchmark へようこそ</div>
         <div class="tut-body">
           このツールは、<strong>OECD加盟37カ国・1200以上の社会指標</strong>を使って、<br>
-          「何が国の成長・幸福につながるか」を探索できるデータベースです。<br><br>
+          「何が国の成功（＝成長＆幸福）につながるか」を探索できるデータベースです。<br><br>
           3分でざっくり使い方をご紹介します。
         </div>
       </div>
 
       <div class="tut-slide" data-slide="1">
         <div class="tut-icon">🔬</div>
-        <div class="tut-title">まず「因子を選ぶ」</div>
+        <div class="tut-title">まず「因子を選ぶ」で、あなたの考える成功要因を入力</div>
         <div class="tut-body">
           サイドバーの <strong>「因子を選ぶ」</strong> が基本画面です。<br><br>
           上部の検索バーに気になるキーワードを入力して因子を選択してください。<br>
@@ -391,7 +391,7 @@
 
       <div class="tut-slide" data-slide="4">
         <div class="tut-icon">🗺️</div>
-        <div class="tut-title">全体を俯瞰する</div>
+        <div class="tut-title">全因子を俯瞰する</div>
         <div class="tut-body">
           <strong>「World Effect Map」</strong> では、<br>
           1200以上の因子を「成長への効果 × 幸福への効果」の2軸でマッピングします。<br><br>
@@ -430,7 +430,7 @@
   <div id="sidebar">
     <div id="sidebar-header">
       <div class="logo">社会戦略フォーラム</div>
-      <h1>World Effect<br>Evaluator <span style="display:inline-block;background:rgba(232,200,64,.15);color:var(--accent);border:1px solid rgba(232,200,64,.3);font-size:9px;padding:1px 6px;border-radius:3px;vertical-align:middle;font-weight:700">test版</span></h1>
+      <h1>World Effect<br>Benchmark <span style="display:inline-block;background:rgba(232,200,64,.15);color:var(--accent);border:1px solid rgba(232,200,64,.3);font-size:9px;padding:1px 6px;border-radius:3px;vertical-align:middle;font-weight:700">test版</span></h1>
       <p id="sidebar-factor-count">37カ国 × 1180因子</p>
     </div>
     <nav>
