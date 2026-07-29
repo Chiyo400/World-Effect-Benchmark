@@ -516,8 +516,8 @@
       <p id="sidebar-factor-count">37カ国 × 1180因子</p>
     </div>
     <nav>
-      <div class="nav-section">🚨 日本の重大課題</div>
-      <div class="nav-item" data-view="top10"><span class="icon">🏆</span>10大重大因子</div>
+      <div class="nav-section">日本の現状</div>
+      <div class="nav-item" data-view="top10"><span class="icon">🏆</span>10大（重大）課題を見る</div>
       <div class="nav-section">因子を理解する</div>
       <div class="nav-item active" data-view="factor-hub"><span class="icon">🔬</span>因子を選ぶ</div>
       <div class="nav-section">国を見る</div>
@@ -902,6 +902,7 @@ async function loadData() {
 
     document.getElementById('loading').style.display='none';
     initAll();
+    initTop10();
     initTutorial();
     showView('factor-hub');
     // 埋め込み初期化（バックグラウンド）
@@ -1945,7 +1946,7 @@ function initTop10() {
     const cg = f?.corr_growth;
     const ch = f?.corr_happiness;
     const dev = f?.deviation_scores?.JPN;
-    return `<div class="top10-card" data-key="${item.key}" onclick="selectTop10('${item.key}')">
+    return `<div class="top10-card" data-key="${escKey(item.key)}" onclick="selectTop10(this.closest('[data-key]').dataset.key)">
       <div class="top10-rank">
         <span class="rank-num">${item.rank}位</span>
         <span style="color:var(--neg);font-weight:700">${item.impact}</span>
