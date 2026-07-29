@@ -330,6 +330,88 @@
     margin-top:10px;transition:var(--tr);
   }
   #help-btn:hover{background:rgba(232,200,64,.15)}
+
+  /* ============================================================
+     TOP10 PAGE
+     ============================================================ */
+  #view-top10 {}
+  .top10-header {
+    margin-bottom: 20px;
+  }
+  .top10-header h2 {
+    font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 6px;
+  }
+  .top10-header p {
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .top10-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .top10-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+    cursor: pointer; transition: var(--tr);
+    position: relative; overflow: hidden;
+  }
+  .top10-card:hover { border-color: var(--accent); background: var(--hover); }
+  .top10-card.selected {
+    border-color: var(--accent);
+    background: rgba(232,200,64,.06);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .top10-rank {
+    font-size: 10px; color: var(--muted); margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .top10-rank .rank-num {
+    font-size: 13px; font-weight: 700; color: var(--accent); min-width: 24px;
+  }
+  .top10-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .top10-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+  .top10-stats {
+    display: flex; gap: 12px; font-size: 11px; flex-wrap: wrap;
+  }
+  .top10-stat { display: flex; flex-direction: column; gap: 2px; }
+  .top10-stat .stat-label { color: var(--muted); font-size: 10px; }
+  .top10-stat .stat-val { font-weight: 700; font-family: monospace; }
+
+  /* 選択後のアクションパネル */
+  .top10-action-panel {
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: var(--r); padding: 16px 20px;
+    margin-bottom: 20px; display: none;
+  }
+  .top10-action-panel.visible { display: block; }
+  .top10-action-title {
+    font-size: 13px; color: var(--muted); margin-bottom: 12px;
+  }
+  .top10-action-title strong { color: var(--accent); font-size: 15px; }
+  .top10-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .top10-action-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: var(--r);
+    background: var(--panel); border: 1px solid var(--border);
+    cursor: pointer; transition: var(--tr); color: var(--text);
+    font-size: 13px; font-family: inherit; text-align: left;
+  }
+  .top10-action-btn:hover { border-color: var(--accent2); background: var(--hover); color: var(--accent2); }
+  .top10-action-btn .btn-icon { font-size: 18px; flex-shrink: 0; }
+  .top10-action-btn .btn-text { display: flex; flex-direction: column; gap: 2px; }
+  .top10-action-btn .btn-main { font-weight: 600; font-size: 13px; }
+  .top10-action-btn .btn-sub { font-size: 10px; color: var(--muted); }
+  .top10-action-btn:hover .btn-sub { color: var(--accent2); }
+
+  @media (max-width: 768px) {
+    .top10-grid { grid-template-columns: 1fr; }
+    .top10-actions { grid-template-columns: 1fr 1fr; }
+  }
 </style>
 <!-- Transformers.js（埋め込みベクトル検索用） -->
 <script type="importmap">
@@ -434,6 +516,8 @@
       <p id="sidebar-factor-count">37カ国 × 1180因子</p>
     </div>
     <nav>
+      <div class="nav-section">🚨 日本の重大課題</div>
+      <div class="nav-item" data-view="top10"><span class="icon">🏆</span>10大重大因子</div>
       <div class="nav-section">因子を理解する</div>
       <div class="nav-item active" data-view="factor-hub"><span class="icon">🔬</span>因子を選ぶ</div>
       <div class="nav-section">国を見る</div>
@@ -490,6 +574,51 @@
 
     <div id="content">
       <div id="loading" class="loading">データを読み込み中… <span>data.json</span></div>
+
+
+      <!-- ====== VIEW: top10 ====== -->
+      <div class="view" id="view-top10">
+        <div class="top10-header">
+          <h2>🏆 日本の10大重大課題</h2>
+          <p>OECDデータで見た「日本が劣後していて、かつ国の成功（成長＆幸福）への有効性が高い」10の重大因子。<br>因子を選ぶと、詳しく分析できます。</p>
+        </div>
+
+        <div class="top10-action-panel" id="top10-action-panel">
+          <div class="top10-action-title" id="top10-action-title"></div>
+          <div class="top10-actions">
+            <button class="top10-action-btn" onclick="top10Navigate('kgi')">
+              <span class="btn-icon">📊</span>
+              <span class="btn-text">
+                <span class="btn-main">国の成功への有効性を見る</span>
+                <span class="btn-sub">→ 成功相関</span>
+              </span>
+            </button>
+            <button class="top10-action-btn" onclick="top10Navigate('rank')">
+              <span class="btn-icon">🔗</span>
+              <span class="btn-text">
+                <span class="btn-main">関係が強い因子を診る</span>
+                <span class="btn-sub">→ 他因子との相関</span>
+              </span>
+            </button>
+            <button class="top10-action-btn" onclick="top10Navigate('scatter')">
+              <span class="btn-icon">📈</span>
+              <span class="btn-text">
+                <span class="btn-main">日本の位置を知る</span>
+                <span class="btn-sub">→ ベンチマークMAP</span>
+              </span>
+            </button>
+            <button class="top10-action-btn" onclick="top10Navigate('cr')">
+              <span class="btn-icon">🏆</span>
+              <span class="btn-text">
+                <span class="btn-main">国のランキングを見る</span>
+                <span class="btn-sub">→ 国の特徴</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="top10-grid" id="top10-grid"></div>
+      </div>
 
       <!-- ====== VIEW: factor-hub ====== -->
       <div class="view" id="view-factor-hub">
@@ -787,6 +916,7 @@ async function loadData() {
 // NAV
 // ============================================================
 const VIEW_TITLES = {
+  'top10':'10大重大因子',
   'factor-hub':'因子を選ぶ',
   'country-profile':'国プロフィール',
   'country-compare':'2国比較',
@@ -1787,6 +1917,89 @@ document.querySelectorAll('.nav-item').forEach(el =>
   })
 );
 
+
+// ============================================================
+// TOP10 重大因子ページ
+// ============================================================
+const TOP10_FACTORS = [
+  { rank: 1,  name: '婚外子率',        key: 'STA_STA_婚外子割合_',                         desc: '出生時に母親が法的に「婚姻」状態でない出生の割合（OECD,2020）',          jpVal: '2.4%',    impact: '+0.38%pt' },
+  { rank: 2,  name: '内閣の若年性',    key: 'OECD_cabinet members_avg_age_2018',           desc: '各国閣僚の平均年齢を正負反転（OECD,2018）',                            jpVal: '62.0歳',  impact: '+0.37%pt' },
+  { rank: 3,  name: '勤続短期性',      key: 'OECD4_job tenure_Total declared_2023',        desc: '全労働者の平均在職期間を正負反転（OECD,2023）',                        jpVal: '12.7年',  impact: '+0.31%pt' },
+  { rank: 4,  name: '自己決定性',      key: 'WVSw7__How much freedom of choice and control_Mean', desc: '「人生を自分で決められる」の選択状態（WVS,2022）',              jpVal: '6.1pt',   impact: '+0.26%pt' },
+  { rank: 5,  name: '社員の熱意',      key: 'GL_Employ Engagement_2023',                   desc: 'Employee Engagement指標（Gallup,2023）',                             jpVal: '5%',      impact: '+0.26%pt' },
+  { rank: 6,  name: 'リスクテイク志向', key: 'WVSw6_adventure and taking risks_Posi_',     desc: '「冒険/リスクが人生を面白くする」回答率（WVS,2014）',                 jpVal: '24%',     impact: '+0.22%pt' },
+  { rank: 7,  name: '女性活躍',        key: 'STA_STA_女性管理職比率_',                     desc: '管理職における女性の割合（ILO,2022）',                                  jpVal: '14%',     impact: '+0.19%pt' },
+  { rank: 8,  name: '恋愛満足度',      key: 'STA_STA_恋愛や性生活への満足度_',             desc: '恋愛や性生活に、人生においてどのくらい満足しているか（IPSOS,2024）',   jpVal: '37%',     impact: '+0.17%pt' },
+  { rank: 9,  name: '預金消極性',      key: 'STA_STA_銀行預金残高対GDP比_',                desc: 'GDPに対する銀行預金残高の割合を正負反転（IMF,2023）',                   jpVal: '167%',    impact: '+0.16%pt' },
+  { rank: 10, name: '人口過疎度',      key: 'STA_STA_人口密度_',                           desc: '総人口÷国土面積を正負反転（世界銀行,2022）',                          jpVal: '343人/k㎡', impact: '+0.15%pt' },
+];
+
+let top10SelectedKey = null;
+
+function initTop10() {
+  const grid = document.getElementById('top10-grid');
+  if(!grid || !DATA) return;
+
+  grid.innerHTML = TOP10_FACTORS.map(item => {
+    const f = DATA.factors[item.key];
+    const cg = f?.corr_growth;
+    const ch = f?.corr_happiness;
+    const dev = f?.deviation_scores?.JPN;
+    return `<div class="top10-card" data-key="${item.key}" onclick="selectTop10('${item.key}')">
+      <div class="top10-rank">
+        <span class="rank-num">${item.rank}位</span>
+        <span style="color:var(--neg);font-weight:700">${item.impact}</span>
+        <span>の成長ポテンシャル</span>
+      </div>
+      <div class="top10-name">${item.name}</div>
+      <div class="top10-desc">${item.desc}</div>
+      <div class="top10-stats">
+        <div class="top10-stat">
+          <span class="stat-label">成長相関</span>
+          <span class="stat-val ${(cg||0)>=0.2?'pos-corr':(cg||0)<=-0.2?'neg-corr':'neu-corr'}">${cg!=null?(cg>0?'+':'')+cg.toFixed(3):'—'}</span>
+        </div>
+        <div class="top10-stat">
+          <span class="stat-label">幸福相関</span>
+          <span class="stat-val ${(ch||0)>=0.2?'pos-corr':(ch||0)<=-0.2?'neg-corr':'neu-corr'}">${ch!=null?(ch>0?'+':'')+ch.toFixed(3):'—'}</span>
+        </div>
+        <div class="top10-stat">
+          <span class="stat-label">日本の偏差値</span>
+          <span class="stat-val" style="color:${dev!=null?(dev<=40?'var(--neg)':dev>=60?'var(--pos)':'var(--text)'):'var(--muted)'}">${dev!=null?dev.toFixed(1):'—'}</span>
+        </div>
+        <div class="top10-stat">
+          <span class="stat-label">日本の実数</span>
+          <span class="stat-val" style="color:var(--muted)">${item.jpVal}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectTop10(key) {
+  top10SelectedKey = key;
+  // カードのselected状態更新
+  document.querySelectorAll('.top10-card').forEach(c =>
+    c.classList.toggle('selected', c.dataset.key === key));
+  // アクションパネル表示
+  const item = TOP10_FACTORS.find(f => f.key === key);
+  const panel = document.getElementById('top10-action-panel');
+  const title = document.getElementById('top10-action-title');
+  if(item && panel && title) {
+    title.innerHTML = `<strong>${item.rank}位 ${item.name}</strong> — 次に何を見ますか？`;
+    panel.classList.add('visible');
+    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+function top10Navigate(subtab) {
+  if(!top10SelectedKey) return;
+  // 因子を選択してfactor-hubへ遷移
+  CURRENT_FACTOR_KEY = top10SelectedKey;
+  showView('factor-hub');
+  updateFselDisplay();
+  showSubtab(subtab);
+}
+
 // moduleスコープの関数をwindowに登録
 window.toggleFselDropdown = toggleFselDropdown;
 window.renderFselDropdown = renderFselDropdown;
@@ -1920,6 +2133,8 @@ function wtMove(dir) {
   setTimeout(renderWtStep, 150);
 }
 window.downloadResult = window.downloadResult || function(){};
+window.selectTop10 = selectTop10;
+window.top10Navigate = top10Navigate;
 window.openTutorial = openTutorial;
 window.closeTutorial = closeTutorial;
 window.tutMove = tutMove;
