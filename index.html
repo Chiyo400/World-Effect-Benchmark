@@ -331,6 +331,39 @@
   }
   #help-btn:hover{background:rgba(232,200,64,.15)}
 
+
+
+  /* シンプルカードスタイル */
+  .top10-card-simple {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--r); transition: var(--tr);
+  }
+  .top10-card-simple:hover { border-color: var(--accent); background: var(--hover); }
+  .top10-card-simple.selected { border-color: var(--accent); background: rgba(232,200,64,.06); box-shadow: 0 0 0 1px var(--accent); }
+  .top10-simple-rank {
+    font-size: 22px; font-weight: 700; color: var(--accent);
+    width: 36px; text-align: center; flex-shrink: 0;
+  }
+  .top10-simple-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .top10-simple-arrow { font-size: 20px; color: var(--muted); }
+  /* 10大のグリッドを1列に */
+  #view-top10 .top10-grid { grid-template-columns: 1fr; max-width: 480px; }
+
+  /* ============================================================
+     BENCHMARK MAP (縦3段)
+     ============================================================ */
+  .bmap-section { margin-bottom: 24px; }
+  .bmap-label {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  @media (max-width: 768px) {
+    .bmap-section { margin-bottom: 16px; }
+    .bmap-label { font-size: 12px; }
+  }
+
   /* ============================================================
      TOP10 PAGE
      ============================================================ */
@@ -516,7 +549,7 @@
       <p id="sidebar-factor-count">37カ国 × 1180因子</p>
     </div>
     <nav>
-      <div class="nav-section">日本の現状</div>
+      <div class="nav-section">日本の重大課題</div>
       <div class="nav-item" data-view="top10"><span class="icon">🏆</span>10大（重大）課題を見る</div>
       <div class="nav-section">因子を理解する</div>
       <div class="nav-item active" data-view="factor-hub"><span class="icon">🔬</span>因子を選ぶ</div>
@@ -579,43 +612,11 @@
       <!-- ====== VIEW: top10 ====== -->
       <div class="view" id="view-top10">
         <div class="top10-header">
-          <h2>🏆 日本の10大重大課題</h2>
+          <h2>🏆 日本の中期重大課題ワースト10</h2>
           <p>OECDデータで見た「日本が劣後していて、かつ国の成功（成長＆幸福）への有効性が高い」10の重大因子。<br>因子を選ぶと、詳しく分析できます。</p>
         </div>
 
-        <div class="top10-action-panel" id="top10-action-panel">
-          <div class="top10-action-title" id="top10-action-title"></div>
-          <div class="top10-actions">
-            <button class="top10-action-btn" onclick="top10Navigate('kgi')">
-              <span class="btn-icon">📊</span>
-              <span class="btn-text">
-                <span class="btn-main">国の成功への有効性を見る</span>
-                <span class="btn-sub">→ 成功相関</span>
-              </span>
-            </button>
-            <button class="top10-action-btn" onclick="top10Navigate('rank')">
-              <span class="btn-icon">🔗</span>
-              <span class="btn-text">
-                <span class="btn-main">関係が強い因子を診る</span>
-                <span class="btn-sub">→ 他因子との相関</span>
-              </span>
-            </button>
-            <button class="top10-action-btn" onclick="top10Navigate('scatter')">
-              <span class="btn-icon">📈</span>
-              <span class="btn-text">
-                <span class="btn-main">日本の位置を知る</span>
-                <span class="btn-sub">→ ベンチマークMAP</span>
-              </span>
-            </button>
-            <button class="top10-action-btn" onclick="top10Navigate('cr')">
-              <span class="btn-icon">🏆</span>
-              <span class="btn-text">
-                <span class="btn-main">国のランキングを見る</span>
-                <span class="btn-sub">→ 国の特徴</span>
-              </span>
-            </button>
-          </div>
-        </div>
+
 
         <div class="top10-grid" id="top10-grid"></div>
       </div>
@@ -650,31 +651,57 @@
           <div id="rank-result"></div>
         </div>
 
-        <!-- サブビュー: 国MAP（散布図） -->
+        <!-- サブビュー: ベンチマークMAP（縦3段） -->
         <div id="subtab-scatter" class="subtab-content" style="display:none">
-          <div class="control-row">
-            <div class="control-group">
-              <label>縦軸</label>
-              <div class="toggle-group">
-                <button class="btn btn-ghost active" id="scatter-kgi-growth">GDP成長</button>
-                <button class="btn btn-ghost" id="scatter-kgi-hap">幸福</button>
-                <button class="btn btn-ghost" id="scatter-kgi-factor">因子を選ぶ</button>
-              </div>
+          <div class="bmap-section">
+            <div class="bmap-label">📈 GDP成長率との相関</div>
+            <div class="chart-wrap" id="scatter-wrap-growth" style="position:relative">
+              <svg id="scatter-svg-growth"></svg>
+              <div class="tooltip tooltip-hidden" id="scatter-tooltip-growth"></div>
             </div>
-            <div class="control-group" id="scatter-yfactor-group" style="display:none;flex:1;max-width:340px">
-              <label>縦軸の因子を検索</label>
-              <div class="wef-search-wrap">
+          </div>
+          <div class="bmap-section">
+            <div class="bmap-label">😊 幸福との相関</div>
+            <div class="chart-wrap" id="scatter-wrap-hap" style="position:relative">
+              <svg id="scatter-svg-hap"></svg>
+              <div class="tooltip tooltip-hidden" id="scatter-tooltip-hap"></div>
+            </div>
+          </div>
+          <div class="bmap-section">
+            <div class="bmap-label" style="display:flex;align-items:center;gap:10px">
+              <span>🎯 任意の因子との相関</span>
+              <div class="wef-search-wrap" style="max-width:280px;flex:1">
                 <span class="fsel-icon" style="left:10px">🔍</span>
-                <input type="text" id="scatter-yfactor-search" placeholder="ラベル名で検索…" oninput="renderScatterYDropdown()">
+                <input type="text" id="scatter-yfactor-search" placeholder="Y軸の因子を検索…" oninput="renderScatterYDropdown()">
                 <div id="scatter-yfactor-dropdown">
                   <div id="scatter-yfactor-droplist"></div>
                 </div>
               </div>
             </div>
+            <div class="chart-wrap" id="scatter-wrap-factor" style="position:relative">
+              <svg id="scatter-svg-factor"></svg>
+              <div class="tooltip tooltip-hidden" id="scatter-tooltip-factor"></div>
+            </div>
           </div>
-          <div class="chart-wrap" id="scatter-wrap" style="position:relative">
-            <svg id="scatter-svg"></svg>
-            <div class="tooltip tooltip-hidden" id="scatter-tooltip"></div>
+          <!-- 重大課題からの遷移時のアクションボタン -->
+          <div id="scatter-action-btns" style="display:none;margin-top:16px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px">さらに詳しく見る</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="top10-action-btn" onclick="top10Navigate('rank')" style="flex:1;min-width:180px">
+                <span class="btn-icon">🔗</span>
+                <span class="btn-text">
+                  <span class="btn-main">関係が強い因子を見る</span>
+                  <span class="btn-sub">→ 他因子との相関</span>
+                </span>
+              </button>
+              <button class="top10-action-btn" onclick="top10Navigate('cr')" style="flex:1;min-width:180px">
+                <span class="btn-icon">🏆</span>
+                <span class="btn-text">
+                  <span class="btn-main">国のランキングを見る</span>
+                  <span class="btn-sub">→ 国の特徴</span>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -917,7 +944,7 @@ async function loadData() {
 // NAV
 // ============================================================
 const VIEW_TITLES = {
-  'top10':'10大重大因子',
+  'top10':'重大課題を見る',
   'factor-hub':'因子を選ぶ',
   'country-profile':'国プロフィール',
   'country-compare':'2国比較',
@@ -1246,6 +1273,9 @@ function showSubtab(id){
   document.querySelectorAll('.sub-tab').forEach(t=>t.classList.toggle('active', t.dataset.subtab===id));
   document.querySelectorAll('.subtab-content').forEach(c=>c.style.display='none');
   document.getElementById('subtab-'+id).style.display='block';
+  // ベンチマークMAPに遷移してきた時、重大課題から来た場合はアクションボタンを表示
+  const actionBtns = document.getElementById('scatter-action-btns');
+  if(actionBtns) actionBtns.style.display = (id==='scatter' && top10SelectedKey) ? 'block' : 'none';
   renderCurrentSubtab();
 }
 
@@ -1382,27 +1412,20 @@ function renderFactorRank(){
 // ============================================================
 let scatterYFactorKey = null;  // 縦軸に任意因子を選んだ場合のkey
 
-function renderScatter(){
-  const key = CURRENT_FACTOR_KEY;
-  const f = DATA.factors[key]; if(!f) return;
+function renderOneScatter(svgId, wrapId, tooltipId, xKey, yMode, yFactorKey2) {
+  const f = DATA.factors[xKey]; if(!f) return;
+  const wrap = document.getElementById(wrapId); if(!wrap) return;
 
   let yKey, yLabel, corrVal, yIsFactor=false, yFactorObj=null;
-
-  if(scatterKgi === 'factor' && scatterYFactorKey && DATA.factors[scatterYFactorKey]) {
-    yIsFactor = true;
-    yFactorObj = DATA.factors[scatterYFactorKey];
-    yLabel = yFactorObj.label;
-    // 因子同士の相関: factor_top_corrから探す。なければ後で実データから計算
-    const tc = DATA.factor_top_corr?.[key];
-    let found = null;
-    if(tc) {
-      found = tc.top.find(it=>it[0]===scatterYFactorKey) || tc.bottom.find(it=>it[0]===scatterYFactorKey);
-    }
-    corrVal = found ? found[1] : null;  // 見つからなければ後で実測計算
+  if(yMode === 'factor' && yFactorKey2 && DATA.factors[yFactorKey2]) {
+    yIsFactor = true; yFactorObj = DATA.factors[yFactorKey2]; yLabel = yFactorObj.label;
+    const tc = DATA.factor_top_corr?.[xKey];
+    let found = tc ? (tc.top.find(it=>it[0]===yFactorKey2)||tc.bottom.find(it=>it[0]===yFactorKey2)) : null;
+    corrVal = found ? found[1] : null;
   } else {
-    yKey = scatterKgi==='growth' ? 'gdp_growth' : 'happiness';
-    yLabel = scatterKgi==='growth' ? 'GDP成長率 CAGR (1999–2019)' : '幸福（Positive affect）';
-    corrVal = scatterKgi==='growth' ? f.corr_growth : f.corr_happiness;
+    yKey = yMode==='growth' ? 'gdp_growth' : 'happiness';
+    yLabel = yMode==='growth' ? 'GDP成長率 CAGR (1999–2019)' : '幸福（Positive affect）';
+    corrVal = yMode==='growth' ? f.corr_growth : f.corr_happiness;
   }
 
   const pts=[];
@@ -1414,7 +1437,6 @@ function renderScatter(){
     pts.push({id:c.id,name:c.name,x,y});
   });
 
-  // 因子×因子モードで相関係数が事前計算に無い場合は実測から計算
   if(yIsFactor && corrVal==null && pts.length>=5) {
     const mx=d3.mean(pts,d=>d.x), my=d3.mean(pts,d=>d.y);
     const num=d3.sum(pts,d=>(d.x-mx)*(d.y-my));
@@ -1423,50 +1445,42 @@ function renderScatter(){
     corrVal = (denx>0&&deny>0) ? num/(denx*deny) : null;
   }
 
-  const wrap=document.getElementById('scatter-wrap');
   const isMobile = window.innerWidth <= 768;
-  // スマホではwrapの実際の幅を使う（min-widthを無視）
   const W = isMobile ? Math.max(wrap.offsetWidth, 300) : Math.max(wrap.clientWidth||640, 500);
-  const H = isMobile ? 340 : 400;
-  // スマホはmarginを詰める（Y軸ラベルを省略）
-  const M = isMobile
-    ? {top:28, right:12, bottom:50, left:44}
-    : {top:28, right:36, bottom:56, left:64};
+  const H = isMobile ? 280 : 340;
+  const M = isMobile ? {top:22,right:12,bottom:44,left:44} : {top:22,right:36,bottom:50,left:64};
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
+
+  const svg=d3.select('#'+svgId).attr('width',W).attr('height',H).attr('style','display:block;max-width:100%');
+  svg.selectAll('*').remove();
+
+  if(pts.length===0){
+    svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','13px').text('データなし');
+    return;
+  }
+
   const xE=d3.extent(pts,d=>d.x), yE=d3.extent(pts,d=>d.y);
   const xP=(xE[1]-xE[0])*0.08, yP=(yE[1]-yE[0])*0.08;
   const xS=d3.scaleLinear().domain([xE[0]-xP,xE[1]+xP]).range([0,iW]);
   const yS=d3.scaleLinear().domain([yE[0]-yP,yE[1]+yP]).range([iH,0]);
-  const svg=d3.select('#scatter-svg')
-    .attr('width', W).attr('height', H)
-    .attr('style','display:block;max-width:100%');
-  svg.selectAll('*').remove();
-
-  if(pts.length === 0) {
-    svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle')
-      .attr('fill','var(--muted)').attr('font-size','13px').text('表示できるデータがありません');
-    return;
-  }
-
   const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
 
-  // プロットエリア背景と枠線（右端・上端）
-  g.append('rect').attr('x',0).attr('y',0).attr('width',iW).attr('height',iH)
-    .attr('fill','rgba(255,255,255,0.03)').attr('rx',2);
+  g.append('rect').attr('x',0).attr('y',0).attr('width',iW).attr('height',iH).attr('fill','rgba(255,255,255,0.03)').attr('rx',2);
   g.append('line').attr('x1',iW).attr('x2',iW).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)').attr('stroke-width',1);
   g.append('line').attr('x1',0).attr('x2',iW).attr('y1',0).attr('y2',0).attr('stroke','var(--border)').attr('stroke-width',1);
+  g.selectAll('.gx').data(xS.ticks(isMobile?4:5)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
+  g.selectAll('.gy').data(yS.ticks(isMobile?3:5)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
 
-  g.selectAll('.gx').data(xS.ticks(isMobile?4:6)).join('line').attr('x1',d=>xS(d)).attr('x2',d=>xS(d)).attr('y1',0).attr('y2',iH).attr('stroke','var(--border)');
-  g.selectAll('.gy').data(yS.ticks(isMobile?4:6)).join('line').attr('x1',0).attr('x2',iW).attr('y1',d=>yS(d)).attr('y2',d=>yS(d)).attr('stroke','var(--border)');
   const mX=d3.mean(pts,d=>d.x),mY=d3.mean(pts,d=>d.y);
-  const num=d3.sum(pts,d=>(d.x-mX)*(d.y-mY)),den=d3.sum(pts,d=>(d.x-mX)**2);
-  if(den!==0){const sl=num/den,ic=mY-sl*mX;
+  const tnum=d3.sum(pts,d=>(d.x-mX)*(d.y-mY)),tden=d3.sum(pts,d=>(d.x-mX)**2);
+  if(tden!==0){const sl=tnum/tden,ic=mY-sl*mX;
     g.append('line').attr('x1',xS(xE[0]-xP)).attr('x2',xS(xE[1]+xP)).attr('y1',yS(sl*(xE[0]-xP)+ic)).attr('y2',yS(sl*(xE[1]+xP)+ic))
-      .attr('stroke','rgba(255,255,255,.15)').attr('stroke-width',1.5).attr('stroke-dasharray','4,4');}
-  const tooltip=document.getElementById('scatter-tooltip');
+      .attr('stroke',corrColor(corrVal)||'rgba(255,255,255,.2)').attr('stroke-width',2).attr('stroke-dasharray','4,4').attr('opacity',0.6);}
+
+  const tooltip=document.getElementById(tooltipId);
   g.selectAll('.dot').data(pts).join('circle')
-    .attr('cx',d=>xS(d.x)).attr('cy',d=>yS(d.y)).attr('r',d=>d.id==='JPN'?7:5)
-    .attr('fill',d=>d.id==='JPN'?'var(--accent)':'var(--accent2)').attr('fill-opacity',d=>d.id==='JPN'?1:0.7)
+    .attr('cx',d=>xS(d.x)).attr('cy',d=>yS(d.y)).attr('r',d=>d.id==='JPN'?7:4)
+    .attr('fill',d=>d.id==='JPN'?'var(--accent)':'var(--accent2)').attr('fill-opacity',d=>d.id==='JPN'?1:0.65)
     .attr('stroke',d=>d.id==='JPN'?'#fff':'transparent').attr('stroke-width',2)
     .style('filter',d=>d.id==='JPN'?'drop-shadow(0 0 5px var(--accent))':'none')
     .on('mousemove',(event,d)=>{
@@ -1475,15 +1489,17 @@ function renderScatter(){
       const r=wrap.getBoundingClientRect();
       tooltip.style.left=(event.clientX-r.left+14)+'px'; tooltip.style.top=(event.clientY-r.top-20)+'px';
     }).on('mouseleave',()=>tooltip.classList.add('tooltip-hidden'));
+
   pts.filter(d=>d.id==='JPN').forEach(d=>{
     g.append('text').attr('x',xS(d.x)+10).attr('y',yS(d.y)+4).text(`${FLAGS[d.id]} JPN`).attr('fill','var(--accent)').attr('font-size','11px');});
-  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).ticks(isMobile?4:6))
+
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xS).ticks(isMobile?4:5))
     .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size',isMobile?'9px':'10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
-  g.append('g').call(d3.axisLeft(yS).ticks(isMobile?4:6))
+  g.append('g').call(d3.axisLeft(yS).ticks(isMobile?3:5))
     .call(a=>a.select('.domain').remove()).call(a=>a.selectAll('text').attr('fill','var(--muted)').attr('font-size',isMobile?'9px':'10px')).call(a=>a.selectAll('.tick line').attr('stroke','var(--border)'));
 
-  // X軸ラベル（因子名）
-  g.append('text').attr('x',iW/2).attr('y',iH+(isMobile?38:46)).attr('text-anchor','middle')
+  // X軸ラベル
+  g.append('text').attr('x',iW/2).attr('y',iH+(isMobile?34:42)).attr('text-anchor','middle')
     .attr('fill','var(--muted)').attr('font-size',isMobile?'10px':'11px').text(f.label);
 
   // Y軸ラベル（PCのみ）
@@ -1492,14 +1508,35 @@ function renderScatter(){
       .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','11px').text(yLabel);
   }
 
-  // r値ラベル（スマホは左上、PCは右上）
+  // r値ラベル（大きめ・目立つ色）
+  const rText = corrVal!=null ? `r = ${fmtCorr(corrVal)}` : 'r = —';
   g.append('text')
-    .attr('x', isMobile ? 4 : iW-4)
-    .attr('y', 14)
-    .attr('text-anchor', isMobile ? 'start' : 'end')
-    .attr('fill',corrColor(corrVal)).attr('font-size','12px').attr('font-weight','700')
-    .text(`r = ${fmtCorr(corrVal)}`);
+    .attr('x', isMobile ? 4 : iW-4).attr('y', 16)
+    .attr('text-anchor', isMobile?'start':'end')
+    .attr('fill', corrColor(corrVal)).attr('font-size','14px').attr('font-weight','700')
+    .text(rText);
 }
+
+function renderScatter(){
+  const key = CURRENT_FACTOR_KEY;
+  renderOneScatter('scatter-svg-growth', 'scatter-wrap-growth', 'scatter-tooltip-growth', key, 'growth', null);
+  renderOneScatter('scatter-svg-hap',    'scatter-wrap-hap',    'scatter-tooltip-hap',    key, 'happiness', null);
+  if(scatterYFactorKey) {
+    renderOneScatter('scatter-svg-factor', 'scatter-wrap-factor', 'scatter-tooltip-factor', key, 'factor', scatterYFactorKey);
+  } else {
+    // Y軸未選択時はメッセージ表示
+    const wrap = document.getElementById('scatter-wrap-factor');
+    if(wrap) {
+      const W = Math.max(wrap.clientWidth||400, 300), H = 120;
+      d3.select('#scatter-svg-factor').attr('width',W).attr('height',H).attr('style','display:block;max-width:100%')
+        .selectAll('*').remove()
+        .append && d3.select('#scatter-svg-factor').append('text').attr('x',W/2).attr('y',H/2)
+        .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size','13px')
+        .text('上の検索ボックスからY軸の因子を選んでください');
+    }
+  }
+}
+
 
 // ============================================================
 // 国別スコアランキング
@@ -1843,29 +1880,9 @@ function initAll(){
     t.addEventListener('click',()=>showSubtab(t.dataset.subtab)));
 
   // 散布図縦軸
-  document.getElementById('scatter-kgi-growth').addEventListener('click',()=>{
-    scatterKgi='growth';
-    document.getElementById('scatter-kgi-growth').classList.add('active');
-    document.getElementById('scatter-kgi-hap').classList.remove('active');
-    document.getElementById('scatter-kgi-factor').classList.remove('active');
-    document.getElementById('scatter-yfactor-group').style.display='none';
-    renderScatter();
-  });
-  document.getElementById('scatter-kgi-hap').addEventListener('click',()=>{
-    scatterKgi='happiness';
-    document.getElementById('scatter-kgi-hap').classList.add('active');
-    document.getElementById('scatter-kgi-growth').classList.remove('active');
-    document.getElementById('scatter-kgi-factor').classList.remove('active');
-    document.getElementById('scatter-yfactor-group').style.display='none';
-    renderScatter();
-  });
-  document.getElementById('scatter-kgi-factor').addEventListener('click',()=>{
-    scatterKgi='factor';
-    document.getElementById('scatter-kgi-factor').classList.add('active');
-    document.getElementById('scatter-kgi-growth').classList.remove('active');
-    document.getElementById('scatter-kgi-hap').classList.remove('active');
-    document.getElementById('scatter-yfactor-group').style.display='flex';
-    if(scatterYFactorKey) renderScatter();
+  // scatter縦軸トグルは縦3段化で不要になったが、残存要素があればエラー防止で空ハンドラ
+  ['scatter-kgi-growth','scatter-kgi-hap','scatter-kgi-factor'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('click',()=>renderScatter());
   });
 
 
@@ -1942,59 +1959,27 @@ function initTop10() {
   if(!grid || !DATA) return;
 
   grid.innerHTML = TOP10_FACTORS.map(item => {
-    const f = DATA.factors[item.key];
-    const cg = f?.corr_growth;
-    const ch = f?.corr_happiness;
-    const dev = f?.deviation_scores?.JPN;
-    return `<div class="top10-card" data-key="${escKey(item.key)}" onclick="selectTop10(this.closest('[data-key]').dataset.key)">
-      <div class="top10-rank">
-        <span class="rank-num">${item.rank}位</span>
-        <span style="color:var(--neg);font-weight:700">${item.impact}</span>
-        <span>の成長ポテンシャル</span>
-      </div>
-      <div class="top10-name">${item.name}</div>
-      <div class="top10-desc">${item.desc}</div>
-      <div class="top10-stats">
-        <div class="top10-stat">
-          <span class="stat-label">成長相関</span>
-          <span class="stat-val ${(cg||0)>=0.2?'pos-corr':(cg||0)<=-0.2?'neg-corr':'neu-corr'}">${cg!=null?(cg>0?'+':'')+cg.toFixed(3):'—'}</span>
-        </div>
-        <div class="top10-stat">
-          <span class="stat-label">幸福相関</span>
-          <span class="stat-val ${(ch||0)>=0.2?'pos-corr':(ch||0)<=-0.2?'neg-corr':'neu-corr'}">${ch!=null?(ch>0?'+':'')+ch.toFixed(3):'—'}</span>
-        </div>
-        <div class="top10-stat">
-          <span class="stat-label">日本の偏差値</span>
-          <span class="stat-val" style="color:${dev!=null?(dev<=40?'var(--neg)':dev>=60?'var(--pos)':'var(--text)'):'var(--muted)'}">${dev!=null?dev.toFixed(1):'—'}</span>
-        </div>
-        <div class="top10-stat">
-          <span class="stat-label">日本の実数</span>
-          <span class="stat-val" style="color:var(--muted)">${item.jpVal}</span>
-        </div>
-      </div>
+    return `<div class="top10-card top10-card-simple" data-key="${escKey(item.key)}" onclick="selectTop10(this.closest('[data-key]').dataset.key)">
+      <span class="top10-simple-rank">${item.rank}</span>
+      <span class="top10-simple-name">${item.name}</span>
+      <span class="top10-simple-arrow">›</span>
     </div>`;
   }).join('');
 }
 
 function selectTop10(key) {
   top10SelectedKey = key;
-  // カードのselected状態更新
   document.querySelectorAll('.top10-card').forEach(c =>
     c.classList.toggle('selected', c.dataset.key === key));
-  // アクションパネル表示
-  const item = TOP10_FACTORS.find(f => f.key === key);
-  const panel = document.getElementById('top10-action-panel');
-  const title = document.getElementById('top10-action-title');
-  if(item && panel && title) {
-    title.innerHTML = `<strong>${item.rank}位 ${item.name}</strong> — 次に何を見ますか？`;
-    panel.classList.add('visible');
-    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
-  }
+  // 因子をセットしてベンチマークMAPへ直接遷移
+  CURRENT_FACTOR_KEY = key;
+  updateFselDisplay();
+  showView('factor-hub');
+  showSubtab('scatter');
 }
 
 function top10Navigate(subtab) {
   if(!top10SelectedKey) return;
-  // 因子を選択してfactor-hubへ遷移
   CURRENT_FACTOR_KEY = top10SelectedKey;
   showView('factor-hub');
   updateFselDisplay();
