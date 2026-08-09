@@ -331,6 +331,16 @@
     margin-top:10px;transition:var(--tr);
   }
   #help-btn:hover{background:rgba(232,200,64,.15)}
+  #report-btn {
+    display:flex;align-items:center;gap:7px;
+    width:100%;padding:9px 16px;
+    background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);
+    border-radius:6px;color:var(--accent2);
+    font-size:12px;font-weight:600;
+    margin-top:6px;transition:var(--tr);
+    text-decoration:none;
+  }
+  #report-btn:hover{background:rgba(74,158,255,.15)}
 
 
 
@@ -566,6 +576,7 @@
         ⚠ 当ツールはAIをベースに作成しており、数値等に誤りが含まれる場合があります
       </span>
       <button id="help-btn" onclick="startWalkthrough()">❓ 使い方ガイド</button>
+      <a href="https://speakerdeck.com/socialstrategyunit/ef810147e92cb40a6c362a5e2b7353bf" target="_blank" rel="noopener" id="report-btn">📄 元レポートを読む</a>
     </div>
   </div>
 
