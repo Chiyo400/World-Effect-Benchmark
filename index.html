@@ -232,7 +232,8 @@
 
   /* 散布図・WEF: 横幅いっぱい */
   #scatter-wrap, #view-world-effect .chart-wrap { overflow-x: auto; }
-  #scatter-svg, #wef-svg { max-width: 100%; }
+  #scatter-svg-growth, #scatter-svg-hap, #scatter-svg-factor { max-width: 100%; }
+  #wef-svg { min-width: 700px; }  /* WEFは横スクロール可能 */
 
   /* ドロップダウン */
   #fsel-dropdown, #wef-dropdown, #scatter-yfactor-dropdown { position: fixed; left: 14px; right: 14px; top: auto; max-height: 55vh; }
@@ -549,8 +550,8 @@
       <p id="sidebar-factor-count">37カ国 × 1180因子</p>
     </div>
     <nav>
-      <div class="nav-section">日本の重大課題</div>
-      <div class="nav-item" data-view="top10"><span class="icon">🏆</span>10大（重大）課題を見る</div>
+      <div class="nav-section">日本の現状</div>
+      <div class="nav-item" data-view="top10"><span class="icon">🏆</span>日本の重大課題を診る</div>
       <div class="nav-section">因子を理解する</div>
       <div class="nav-item active" data-view="factor-hub"><span class="icon">🔬</span>因子を選ぶ</div>
       <div class="nav-section">国を見る</div>
@@ -628,7 +629,7 @@
           <div class="sub-tab active" data-subtab="kgi">📊 成功相関</div>
           <div class="sub-tab" data-subtab="rank">🔗 他因子との相関</div>
           <div class="sub-tab" data-subtab="scatter">📈 ベンチマークMAP</div>
-          <div class="sub-tab" data-subtab="cr">🏆 国の特徴</div>
+          <div class="sub-tab" data-subtab="cr">🏆 国ランキング</div>
         </div>
 
         <!-- サブビュー: KGI -->
@@ -1785,7 +1786,7 @@ function renderWEF(){
   const pts = basePts.map(f=>({key:f.key,label:f.label,selected:f.selected,x:f.corr_happiness,y:f.corr_growth}));
 
   const wrap=document.querySelector('#view-world-effect .chart-wrap');
-  const W=Math.max(wrap?.clientWidth||700,600), H=500;
+  const W=Math.max(wrap?.clientWidth||700, 700), H=500;  // 最低700px確保（スマホは横スクロール）
   const M={top:36,right:36,bottom:56,left:56};
   const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
   const xS=d3.scaleLinear().domain([-0.8,0.8]).range([0,iW]);
