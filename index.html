@@ -1339,8 +1339,135 @@ function renderKgi(){
         ${DATA.factors[key].selected?'<span class="badge-selected">選抜</span>':''}<br>
         コード: <code style="color:var(--accent2);font-size:11px">${key}</code>
       </div>
+    </div>
+    <div class="card" style="margin-top:14px" id="kgi-factorcorr-card">
+      <div class="card-title">🔍 他の因子との相関を調べる</div>
+      <div style="margin-top:8px;position:relative" id="kgi-factorcorr-wrap">
+        <span class="fsel-icon" style="left:10px">🔍</span>
+        <input type="text" id="kgi-factorcorr-input"
+          placeholder="因子名を検索…"
+          style="width:100%;padding:7px 10px 7px 32px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box"
+          oninput="renderKgiCorrDropdown()">
+        <div id="kgi-factorcorr-dropdown" style="display:none;position:absolute;left:0;right:0;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:240px;overflow-y:auto;margin-top:4px">
+          <div id="kgi-factorcorr-list"></div>
+        </div>
+      </div>
+      <div id="kgi-factorcorr-result" style="margin-top:12px;display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px" id="kgi-fc-pair-label"></div>
+            <div style="font-size:28px;font-weight:700" id="kgi-fc-corr-val"></div>
+          </div>
+          <button class="btn btn-primary" onclick="kgiCorrToScatter()" style="font-size:12px;padding:7px 14px">📈 散布図で見る</button>
+        </div>
+      </div>
     </div>`;
 }
+
+// ============================================================
+// 成功相関タブ: 因子間相関チェック
+// ============================================================
+let kgiCorrSelectedKey = null;
+let kgiCorrTimer = null;
+
+function renderKgiCorrDropdown(){
+  const q = document.getElementById('kgi-factorcorr-input').value.trim().toLowerCase();
+  const dd = document.getElementById('kgi-factorcorr-dropdown');
+  if(!q){ dd.style.display='none'; if(kgiCorrTimer) clearTimeout(kgiCorrTimer); return; }
+
+  const pool = searchPool(
+    ALL_FACTORS.filter(f=>f.key!==CURRENT_FACTOR_KEY), q
+  ).slice(0, 20);
+
+  document.getElementById('kgi-factorcorr-list').innerHTML = pool.map(f=>{
+    const jpnDev = DATA.factors[f.key]?.deviation_scores?.JPN;
+    return `<div class="fsel-drop-item" data-key="${escKey(f.key)}">
+      <div class="di-label">${f.label}${f.selected?'<span class="badge-selected">選抜</span>':''}</div>
+      <div class="di-meta">
+        <span class="${f.corr_growth>=0.2?'fsel-corr-g':f.corr_growth<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">成長 ${fmtCorr(f.corr_growth)}</span>
+        <span class="${f.corr_happiness>=0.2?'fsel-corr-g':f.corr_happiness<=-0.2?'fsel-corr-gn':'fsel-corr-gm'}">幸福 ${fmtCorr(f.corr_happiness)}</span>
+        <span style="color:${devColor(jpnDev)}">JP偏差値 ${jpnDev!=null?jpnDev.toFixed(1):'—'}</span>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty" style="padding:12px">該当なし</div>';
+
+  // イベントデリゲーション
+  document.getElementById('kgi-factorcorr-list').onclick = e => {
+    const item = e.target.closest('[data-key]');
+    if(!item) return;
+    const key = item.dataset.key;
+    const fTarget = DATA.factors[key]; if(!fTarget) return;
+    document.getElementById('kgi-factorcorr-input').value = fTarget.label;
+    dd.style.display = 'none';
+    kgiCorrSelectedKey = key;
+    showKgiCorrResult(key);
+  };
+
+  dd.style.display = 'block';
+}
+
+function showKgiCorrResult(targetKey){
+  const xKey = CURRENT_FACTOR_KEY;
+  const fTarget = DATA.factors[targetKey]; if(!fTarget) return;
+  const fX = DATA.factors[xKey]; if(!fX) return;
+
+  // factor_top_corrから相関値を取得
+  const tc = DATA.factor_top_corr?.[xKey];
+  let corrVal = null;
+  if(tc){
+    const found = tc.top.find(it=>it[0]===targetKey) || tc.bottom.find(it=>it[0]===targetKey);
+    if(found) corrVal = found[1];
+  }
+
+  // なければ実測計算
+  if(corrVal==null){
+    const pts = [];
+    COUNTRIES.forEach(c=>{
+      const x = fX.country_scores[c.id];
+      const y = fTarget.country_scores[c.id];
+      if(x!=null&&y!=null) pts.push({x,y});
+    });
+    if(pts.length>=5){
+      const mx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+      const my=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+      const num=pts.reduce((s,p)=>s+(p.x-mx)*(p.y-my),0);
+      const denx=Math.sqrt(pts.reduce((s,p)=>s+(p.x-mx)**2,0));
+      const deny=Math.sqrt(pts.reduce((s,p)=>s+(p.y-my)**2,0));
+      corrVal = (denx>0&&deny>0) ? Math.round(num/(denx*deny)*1000)/1000 : null;
+    }
+  }
+
+  const result = document.getElementById('kgi-factorcorr-result');
+  const pairLabel = document.getElementById('kgi-fc-pair-label');
+  const corrValEl = document.getElementById('kgi-fc-corr-val');
+
+  pairLabel.textContent = `${fX.label}  ×  ${fTarget.label}`;
+  if(corrVal!=null){
+    const color = corrVal>=0.2?'var(--pos)':corrVal<=-0.2?'var(--neg)':'var(--muted)';
+    corrValEl.style.color = color;
+    corrValEl.textContent = (corrVal>0?'+':'')+corrVal.toFixed(3);
+  } else {
+    corrValEl.style.color = 'var(--muted)';
+    corrValEl.textContent = '— (データ不足)';
+  }
+  result.style.display = 'block';
+}
+
+function kgiCorrToScatter(){
+  if(!kgiCorrSelectedKey) return;
+  // Y軸に選択した因子をセット → ベンチマークMAPタブへ
+  scatterYFactorKey = kgiCorrSelectedKey;
+  const f = DATA.factors[kgiCorrSelectedKey];
+  if(f) document.getElementById('scatter-yfactor-search').value = f.label;
+  showSubtab('scatter');
+}
+
+// 外クリックで閉じる
+document.addEventListener('mousedown', e=>{
+  const wrap = document.getElementById('kgi-factorcorr-wrap');
+  const dd = document.getElementById('kgi-factorcorr-dropdown');
+  if(wrap && dd && !wrap.contains(e.target)) dd.style.display='none';
+});
 
 function quadrantBadge(cg,ch){
   const G=(cg||0)>=0.2, G_=(cg||0)<=-0.2, H=(ch||0)>=0.2, H_=(ch||0)<=-0.2;
@@ -2024,6 +2151,8 @@ window.renderWefDropdown = renderWefDropdown;
 window.setWefHighlight = setWefHighlight;
 window.renderScatterYDropdown = renderScatterYDropdown;
 window.selectScatterYFactor = selectScatterYFactor;
+window.renderKgiCorrDropdown = renderKgiCorrDropdown;
+window.kgiCorrToScatter = kgiCorrToScatter;
 window.clearWefHighlight = clearWefHighlight;
 window.toggleSidebar = toggleSidebar;
 window.closeSidebar = closeSidebar;
