@@ -54,8 +54,10 @@
   .fsel-search-wrap input{width:100%;padding-left:32px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:7px 11px 7px 32px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none}
   .fsel-search-wrap input:focus{border-color:var(--accent2)}
   .fsel-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
-  .fsel-current{display:flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(74,158,255,.1);border:1px solid var(--accent2);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--accent2);white-space:nowrap;cursor:pointer}
-  .fsel-current:hover{background:rgba(74,158,255,.18)}
+  .fsel-current{display:flex;align-items:center;gap:0;background:var(--panel);border:1px solid var(--accent2);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--text);overflow:hidden}
+  #fsel-current-label{flex:1;padding:7px 14px;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fsel-change-btn{flex-shrink:0;padding:7px 13px;background:rgba(74,158,255,.15);border:none;border-left:1px solid var(--accent2);color:var(--accent2);font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:var(--tr);white-space:nowrap}
+  .fsel-change-btn:hover{background:rgba(74,158,255,.3)}
   #fsel-dropdown{position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:320px;overflow-y:auto;display:none;margin-top:4px}
   #fsel-dropdown.open{display:block}
   .fsel-drop-item{padding:8px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -598,10 +600,10 @@
     <div id="factor-selector-bar">
       <div class="fsel-inner">
         <label>選択中の因子</label>
-        <div style="position:relative;flex:1;max-width:420px">
-          <div class="fsel-current" id="fsel-current-display" onclick="toggleFselDropdown()">
+        <div style="position:relative;flex:1;max-width:480px">
+          <div class="fsel-current" id="fsel-current-display">
             <span id="fsel-current-label">社員の熱意</span>
-            <span style="color:var(--muted);font-size:11px">▼ 変更</span>
+            <button class="fsel-change-btn" onclick="toggleFselDropdown()" aria-label="因子を変更">🔄 変更</button>
           </div>
           <div id="fsel-dropdown">
             <div style="padding:8px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)">
@@ -818,7 +820,8 @@ let COUNTRIES = [];
 
 // 全体共有の選択因子（factor-hub内のサブタブで共有）
 let CURRENT_FACTOR_KEY = 'GL_Employ Engagement_2023';
-let fselSemTimer = null;  // 因子セレクター: セマンティック検索デバウンス用
+let fselSemTimer = null;      // 因子セレクター: セマンティック検索デバウンス用
+let scatterYSemTimer = null; // 任意Y軸因子検索: セマンティック検索デバウンス用
 let CURRENT_SUBTAB = 'kgi';
 let scatterKgi = 'growth';
 let crSort = 'desc';
@@ -1252,8 +1255,8 @@ function renderDropItems(kwPool, qL, semResults) {
   return html;
 }
 
-function mergeAndRender(kwPool, semResults, qL) {
-  document.getElementById('fsel-drop-list').innerHTML = renderDropItems(kwPool, qL, semResults);
+function mergeAndRender(kwPool, semResults, qL, listId='fsel-drop-list') {
+  document.getElementById(listId).innerHTML = renderDropItems(kwPool, qL, semResults);
 }
 function selectFactor(key){
   CURRENT_FACTOR_KEY = key;
@@ -1695,7 +1698,7 @@ function renderWefDropdown(){
 function renderScatterYDropdown(){
   const q = document.getElementById('scatter-yfactor-search').value.trim().toLowerCase();
   const dd = document.getElementById('scatter-yfactor-dropdown');
-  if(!q){ dd.classList.remove('open'); return; }
+  if(!q){ dd.classList.remove('open'); if(scatterYSemTimer) clearTimeout(scatterYSemTimer); return; }
 
   const input = document.getElementById('scatter-yfactor-search');
   const rect = input.getBoundingClientRect();
@@ -1703,6 +1706,7 @@ function renderScatterYDropdown(){
   dd.style.top  = (rect.bottom + 4) + 'px';
   dd.style.width = Math.max(rect.width, 320) + 'px';
 
+  // キーワード検索結果を即時表示
   const pool = searchPool(
     ALL_FACTORS.filter(f=>f.key!==CURRENT_FACTOR_KEY), q
   ).slice(0, 30);
@@ -1735,6 +1739,20 @@ function renderScatterYDropdown(){
     dd.classList.remove('open');
     renderScatter();
   };
+
+  // セマンティック検索はデバウンス（350ms）
+  if(EMB_READY && EMB_EXTRACTOR) {
+    if(scatterYSemTimer) clearTimeout(scatterYSemTimer);
+    const myQ = q;
+    scatterYSemTimer = setTimeout(() => {
+      if(document.getElementById('scatter-yfactor-search').value.trim().toLowerCase() !== myQ) return;
+      semanticSearch(myQ, 20).then(semResults => {
+        if(document.getElementById('scatter-yfactor-search').value.trim().toLowerCase() !== myQ) return;
+        const kwPool = searchPool(ALL_FACTORS.filter(f=>f.key!==CURRENT_FACTOR_KEY), myQ);
+        mergeAndRender(kwPool, semResults, myQ, 'scatter-yfactor-droplist');
+      });
+    }, 350);
+  }
 
   dd.classList.add('open');
 }
