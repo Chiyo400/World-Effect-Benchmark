@@ -37,6 +37,23 @@
   #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
   #topbar{height:50px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:14px}
   #topbar h2{font-size:15px;font-weight:600;flex:1}
+  #qr-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
+  #qr-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(99,179,237,.08)}
+  #qr-btn svg{flex-shrink:0}
+  #qr-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;align-items:center;justify-content:center}
+  #qr-modal-overlay.open{display:flex}
+  #qr-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;position:relative}
+  #qr-modal h3{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text)}
+  #qr-modal p{font-size:11px;color:var(--muted);margin-bottom:16px}
+  #qr-modal img{width:200px;height:200px;border-radius:8px;border:4px solid #fff;display:block;margin:0 auto 16px}
+  #qr-url{font-size:11px;color:var(--muted);background:var(--panel);border-radius:6px;padding:8px 12px;margin-bottom:16px;word-break:break-all;border:1px solid var(--border)}
+  .qr-modal-btns{display:flex;gap:8px;justify-content:center}
+  .qr-modal-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+  .qr-modal-btn.primary{background:var(--accent);color:#0d1117}
+  .qr-modal-btn.primary:hover{opacity:.85}
+  .qr-modal-btn.secondary{background:var(--panel);color:var(--text);border:1px solid var(--border)}
+  .qr-modal-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+  .qr-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
   .badge{background:var(--panel);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--muted)}
   #content{flex:1;overflow-y:auto;padding:20px 22px}
 
@@ -187,6 +204,7 @@
   #topbar h2 { font-size: 14px; }
   #topbar .badge { font-size: 10px; padding: 2px 7px; }
   #topbar-badge { display: none; }
+  #qr-btn span { display: none; }
 
   /* コンテンツ */
   #content { padding: 14px 14px; }
@@ -594,6 +612,25 @@
       <h2 id="view-title">因子を選ぶ</h2>
       <div class="badge" id="topbar-badge">1180因子</div>
       <div class="badge" id="emb-status" style="display:none"></div>
+      <button id="qr-btn" onclick="openQrModal()" aria-label="QRコードで共有">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="18" y="19" width="3" height="3"/></svg>
+        <span>QR共有</span>
+      </button>
+    </div>
+
+    <!-- QRモーダル -->
+    <div id="qr-modal-overlay" onclick="closeQrModal(event)">
+      <div id="qr-modal">
+        <button class="qr-close" onclick="closeQrModal(null, true)">×</button>
+        <h3>🌍 World Effect Benchmark</h3>
+        <p>QRコードを読み取ってアクセス</p>
+        <img src="data:image/png;base64,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" alt="QRコード" />
+        <div id="qr-url">chiyo400.github.io/World-Effect-Benchmark/</div>
+        <div class="qr-modal-btns">
+          <button class="qr-modal-btn primary" onclick="copyQrUrl()">📋 URLコピー</button>
+          <button class="qr-modal-btn secondary" onclick="closeQrModal(null, true)">閉じる</button>
+        </div>
+      </div>
     </div>
 
     <!-- 共有因子セレクターバー（因子HUBのサブページで表示） -->
@@ -2285,6 +2322,24 @@ window.closeTutorial = closeTutorial;
 window.tutMove = tutMove;
 window.startWalkthrough = startWalkthrough;
 window.wtMove = wtMove;
+
+// === QRモーダル ===
+function openQrModal() {
+  document.getElementById('qr-modal-overlay').classList.add('open');
+}
+function closeQrModal(e, force) {
+  if (force || (e && e.target === document.getElementById('qr-modal-overlay'))) {
+    document.getElementById('qr-modal-overlay').classList.remove('open');
+  }
+}
+function copyQrUrl() {
+  navigator.clipboard.writeText('https://chiyo400.github.io/World-Effect-Benchmark/').then(() => {
+    const btn = document.querySelector('.qr-modal-btn.primary');
+    const orig = btn.textContent;
+    btn.textContent = '✅ コピーしました';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
 
 loadData();
 </script>
